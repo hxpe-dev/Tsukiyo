@@ -50,6 +50,11 @@ react {
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
     // hermesFlags = ["-O", "-output-source-map"]
 
+    project.ext.vectoricons = [
+        iconFontNames: ['Feather.ttf', 'MaterialCommunityIcons.ttf', 'FontAwesome.ttf', 'AntDesign.ttf'] // Add other font files as needed
+    ]
+    apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+
     /* Autolinking */
     autolinkLibrariesWithApp()
 }
