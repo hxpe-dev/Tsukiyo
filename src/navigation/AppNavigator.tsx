@@ -11,7 +11,7 @@ export type RootStackParamList = {
   Main: { screen?: keyof MainStackParamList };
   Settings: undefined;
   Info: { item: Manga };
-  Reader: { mangaId: string, chapterId: string, chapters: Chapter[], page: number };
+  Reader: { mangaId: string, chapterId: string, chapters: Chapter[], page: number, externalUrl?: string | null };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

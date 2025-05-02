@@ -52,7 +52,7 @@ export default function HomeScreen() {
   };
 
   const handleNavigateToReader = (item: MangaProgress) => {
-    navigation.navigate('Reader', { mangaId: item.id, mangaTitle: item.title, mangaCover: item.cover, chapterId: item.chapterId, chapters: item.chapters, page: item.page });
+    navigation.navigate('Reader', { mangaId: item.id, mangaTitle: item.title, mangaCover: item.cover, chapterId: item.chapterId, chapters: item.chapters, page: item.page, externalUrl: item.externalUrl });
   };
 
   const handleNavigateToInfo = (item: Manga | MangaProgress) => {

@@ -62,7 +62,9 @@ const Card: React.FC<CardProps> = ({
     : item.cover;
 
   const chapterInfo = !isManga(item)
-    ? `Ch. ${item.chapterNum} • Pg. ${item.page + 1}`
+    ? item.externalUrl
+      ? `Ch. ${item.chapterNum} (external)`
+      : `Ch. ${item.chapterNum} • Pg. ${item.page + 1}`
     : null;
 
   const dynamicStyles = {

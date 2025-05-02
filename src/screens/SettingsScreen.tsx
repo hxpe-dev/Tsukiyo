@@ -5,15 +5,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function SettingsScreen() {
   const [horizontalCardAnimationsEnabled, setHorizontalCardAnimationsEnabled] = useState(true);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] = useState(true);
+  const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
   const [showRestartWarning, setShowRestartWarning] = useState(false);
 
   useEffect(() => {
     const loadSettings = async () => {
       const horizontalCardAnimationsSetting = await AsyncStorage.getItem('horizontal_card_animations');
       const verticalCardAnimationsSetting = await AsyncStorage.getItem('vertical_card_animations');
+      const readerAnimationsSetting = await AsyncStorage.getItem('reader_animations');
 
       if (horizontalCardAnimationsSetting !== null) {setHorizontalCardAnimationsEnabled(horizontalCardAnimationsSetting === 'true');}
       if (verticalCardAnimationsSetting !== null) {setVerticalCardAnimationsEnabled(verticalCardAnimationsSetting === 'true');}
+      if (readerAnimationsSetting !== null) {setReaderAnimationsEnabled(readerAnimationsSetting === 'true');}
     };
 
     loadSettings();
@@ -32,6 +35,12 @@ export default function SettingsScreen() {
     await AsyncStorage.setItem('vertical_card_animations', String(newValue));
   };
 
+  const toggleReaderAnimations = async () => {
+    const newValue = !readerAnimationsEnabled;
+    setReaderAnimationsEnabled(newValue);
+    await AsyncStorage.setItem('reader_animations', String(newValue));
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.settingRow}>
@@ -42,6 +51,11 @@ export default function SettingsScreen() {
       <View style={styles.settingRow}>
         <Text style={styles.text}>Vertical Card Animations</Text>
         <Switch value={verticalCardAnimationsEnabled} onValueChange={toggleVerticalCardAnimations} />
+      </View>
+
+      <View style={styles.settingRow}>
+        <Text style={styles.text}>Reader Animations</Text>
+        <Switch value={readerAnimationsEnabled} onValueChange={toggleReaderAnimations} />
       </View>
 
       {showRestartWarning && (

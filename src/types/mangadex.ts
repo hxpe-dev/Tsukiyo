@@ -74,5 +74,12 @@ export type MangaProgress = {
   chapterNum: string;
   chapters: Chapter[];
   page: number;
+  externalUrl: string | null;
   lastRead?: string;
+};
+
+export type MangaDownloads = {
+  [mangaId: string]: {
+    [chapterId: string]: string[]; // Array of local file paths
+  };
 };

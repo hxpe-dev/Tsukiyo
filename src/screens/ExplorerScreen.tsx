@@ -29,8 +29,6 @@ const SEARCH_CARD_SIZE = (width - SEARCH_CARD_MARGIN * 4) / 3;
 export default function ExplorerScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [latestManga, setLatestManga] = useState<Manga[]>([]);
-  const [testManga01, setTestManga01] = useState<Manga[]>([]);
-  const [testManga02, setTestManga02] = useState<Manga[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] = useState(true);
@@ -55,10 +53,6 @@ export default function ExplorerScreen() {
     setLoading(true);
     try {
       const mangaData = await getLatestManga();
-      const testManga01Data = await searchManga('Learning to Love My Cat-like Classmate');
-      const testManga02Data = await searchManga('Solo Leveling');
-      setTestManga01(testManga01Data);
-      setTestManga02(testManga02Data);
       setLatestManga(mangaData);
     } catch (error) {
       console.error('Failed to fetch trending manga', error);
@@ -80,7 +74,6 @@ export default function ExplorerScreen() {
     setIsSearching(true);
     try {
       const results = await searchManga(searchQuery.trim(), 100);
-      console.log(results);
       setSearchResults(results);
     } catch (error) {
       console.error('Search error:', error);
@@ -182,18 +175,6 @@ export default function ExplorerScreen() {
                 onCardLongPress={handleNavigateToInfo}
               />
             )}
-            {/* <HorizontalListDisplayer
-              title="Test Manga 01"
-              list={testManga01}
-              onCardClick={handleNavigateToInfo}
-              onCardLongPress={handleNavigateToInfo}
-            />
-            <HorizontalListDisplayer
-              title="Test Manga 02"
-              list={testManga02}
-              onCardClick={handleNavigateToInfo}
-              onCardLongPress={handleNavigateToInfo}
-            /> */}
           </>
         )}
       </ScrollView>
@@ -231,6 +212,7 @@ const styles = StyleSheet.create({
   },
   grid: {
     paddingTop: 8,
+    paddingBottom: 80,
   },
   row: {
     justifyContent: 'space-between',

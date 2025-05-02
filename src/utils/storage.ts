@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MangaProgress, Chapter } from '../types/mangadex';
+import { MangaProgress, MangaDownloads, Chapter } from '../types/mangadex';
 
 // const MANGA_PLANNING_KEY = '@manga_planning'; // Static key for manga list
 const MANGA_PROGRESS_KEY = '@manga_progress'; // For reading progression
+const MANGA_DOWNLOADS_KEY = '@manga_downloads';
 
 type ReadingProgress = {
   [mangaId: string]: {
@@ -46,13 +47,14 @@ export const saveReadingProgress = async (
   chapterId: string,
   chapterNum: string,
   chapters: Chapter[],
-  page: number
+  page: number,
+  externalUrl?: string | null,
 ) => {
   try {
     const raw = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
     const progressMap: ReadingProgress = raw ? JSON.parse(raw) : {};
 
-    progressMap[mangaId] = { mangaTitle, mangaCover, chapterId, chapterNum, chapters, page, lastRead: new Date().toISOString() };
+    progressMap[mangaId] = { mangaTitle, mangaCover, chapterId, chapterNum, chapters, page, externalUrl, lastRead: new Date().toISOString() };
 
     await AsyncStorage.setItem(MANGA_PROGRESS_KEY, JSON.stringify(progressMap));
   } catch (e) {
@@ -88,6 +90,7 @@ export const getAllReadingProgress = async (): Promise<Manga[]> => {
       chapterNum: entry.chapterNum,
       chapters: entry.chapters,
       page: entry.page,
+      externalUrl: entry.externalUrl,
       lastRead: entry.lastRead || null,
     }));
 
@@ -102,4 +105,59 @@ export const getAllReadingProgress = async (): Promise<Manga[]> => {
     console.error('Error getting reading progress:', e);
     return [];
   }
+};
+
+export const saveChapterImagesLocally = async (
+  mangaId: string,
+  chapterId: string,
+  imageUrls: string[],
+): Promise<string[]> => {
+  const localPaths: string[] = [];
+
+  for (let i = 0; i < imageUrls.length; i++) {
+    const imageUrl = imageUrls[i];
+    const filename = `page_${i}.jpg`;
+    const dirPath = `${FileSystem.documentDirectory}manga/${mangaId}/${chapterId}/`;
+    const filePath = `${dirPath}${filename}`;
+
+    await FileSystem.makeDirectoryAsync(dirPath, { intermediates: true });
+
+    try {
+      await FileSystem.downloadAsync(imageUrl, filePath);
+      localPaths.push(filePath);
+    } catch (e) {
+      console.error(`Failed to download image ${i} for chapter ${chapterId}`, e);
+    }
+  }
+
+  // Save to AsyncStorage
+  const raw = await AsyncStorage.getItem(MANGA_DOWNLOADS_KEY);
+  const allDownloads: MangaDownloads = raw ? JSON.parse(raw) : {};
+  if (!allDownloads[mangaId]) {
+    allDownloads[mangaId] = {};
+  }
+
+  allDownloads[mangaId][chapterId] = localPaths;
+
+  await AsyncStorage.setItem(MANGA_DOWNLOADS_KEY, JSON.stringify(allDownloads));
+
+  return localPaths;
+};
+
+export const getDownloadedChapter = async (
+  mangaId: string,
+  chapterId: string
+): Promise<string[] | null> => {
+  const raw = await AsyncStorage.getItem(MANGA_DOWNLOADS_KEY);
+  const allDownloads: MangaDownloads = raw ? JSON.parse(raw) : {};
+
+  return allDownloads[mangaId]?.[chapterId] || null;
+};
+
+export const isChapterDownloaded = async (
+  mangaId: string,
+  chapterId: string
+): Promise<boolean> => {
+  const images = await getDownloadedChapter(mangaId, chapterId);
+  return !!images && images.length > 0;
 };

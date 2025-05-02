@@ -16,9 +16,12 @@ const InfoScreen = () => {
 
   const [manga, setManga] = useState<Manga | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [mangadexChapters, setMangadexChapters] = useState<Chapter[]>([]);
+  const [externalChapters, setExternalChapters] = useState<Chapter[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [selectedUrl, setSelectedUrl] = useState<string | null>('all');
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMoreChapters, setHasMoreChapters] = useState<boolean>(true);
 
@@ -50,6 +53,8 @@ const InfoScreen = () => {
   useEffect(() => {
     if (!manga) {return;}
     setChapters([]);
+    setMangadexChapters([]);
+    setExternalChapters([]);
     setCurrentPage(1);
     setHasMoreChapters(true);
   }, [selectedLanguage, manga]);
@@ -68,8 +73,13 @@ const InfoScreen = () => {
             (newChapter) => !chapters.some((existing) => existing.id === newChapter.id)
           );
 
+          const mangadex = newChapters.filter(chapter => !chapter.attributes.externalUrl);
+          const external = newChapters.filter(chapter => chapter.attributes.externalUrl);
+
           if (newChapters.length > 0) {
             setChapters((prev) => [...prev, ...newChapters]);
+            setMangadexChapters((prev) => [...prev, ...mangadex]);
+            setExternalChapters((prev) => [...prev, ...external]);
             setCurrentPage((prev) => prev + 1);
           } else {
             setHasMoreChapters(false);
@@ -85,24 +95,26 @@ const InfoScreen = () => {
     fetchChapters();
   }, [manga, selectedLanguage, currentPage, hasMoreChapters, loading, chapters]);
 
-  const handleStartReading = (chapterId?: string) => {
+  const handleStartReading = (chapterId?: string, externalUrl?: string | null) => {
     if (chapterId && manga) {
       navigation.navigate('Reader', {
         mangaId: manga.id,
         mangaTitle: manga.attributes.title.en || 'No title',
         mangaCover: imageUrl,
         chapterId,
-        chapters,
+        chapters: selectedUrl === 'all' ? chapters : selectedUrl === 'mangadex' ? mangadexChapters : externalChapters,
         page: 0,
+        externalUrl: externalUrl || null,
       });
     }
   };
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const renderChapterItem = ({ item }: { item: Chapter }) => (
-    <TouchableOpacity style={styles.chapterItem} onPress={() => handleStartReading(item.id)}>
+    <TouchableOpacity style={styles.chapterItem} onPress={() => handleStartReading(item.id, item.attributes.externalUrl)}>
       <Text style={styles.chapterTitle}>
-        Chapter {item.attributes.chapter}: {item.attributes.title}
+        Chapter {item.attributes.chapter || '?'}: {item.attributes.title || 'No title'}
+        {item.attributes.externalUrl ? ' (External)' : ''}
       </Text>
     </TouchableOpacity>
   );
@@ -153,9 +165,44 @@ const InfoScreen = () => {
           </TouchableOpacity>
         ))}
       </ScrollView>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.urlScroller}>
+        {chapters.length > 0 && (
+          <TouchableOpacity
+            style={[
+              styles.urlButton,
+              selectedUrl === 'all' && styles.selectedUrlButton,
+            ]}
+            onPress={() => setSelectedUrl('all')}
+          >
+            <Text style={styles.urlButtonText}>All</Text>
+          </TouchableOpacity>
+        )}
+        {mangadexChapters.length > 0 && (
+          <TouchableOpacity
+            style={[
+              styles.urlButton,
+              selectedUrl === 'mangadex' && styles.selectedUrlButton,
+            ]}
+            onPress={() => setSelectedUrl('mangadex')}
+          >
+            <Text style={styles.urlButtonText}>Mangadex</Text>
+          </TouchableOpacity>
+        )}
+        {externalChapters.length > 0 && (
+          <TouchableOpacity
+            style={[
+              styles.urlButton,
+              selectedUrl === 'external' && styles.selectedUrlButton,
+            ]}
+            onPress={() => setSelectedUrl('external')}
+          >
+            <Text style={styles.urlButtonText}>External</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
       <TouchableOpacity
         style={styles.startButton}
-        onPress={() => handleStartReading(chapters[0]?.id)}
+        onPress={() => handleStartReading(chapters[0]?.id, chapters[0]?.attributes.externalUrl || null)}
       >
         <Text style={styles.startButtonText}>Start Reading</Text>
       </TouchableOpacity>
@@ -165,7 +212,7 @@ const InfoScreen = () => {
 
   return (
     <FlatList
-      data={chapters}
+      data={selectedUrl === 'all' ? chapters : selectedUrl === 'mangadex' ? mangadexChapters : externalChapters}
       keyExtractor={(chapter) => `${chapter.id}-${selectedLanguage}`}
       renderItem={renderChapterItem}
       ListHeaderComponent={renderHeader}
@@ -230,6 +277,9 @@ const styles = StyleSheet.create({
   languageScroller: {
     marginVertical: 12,
   },
+  urlScroller: {
+    marginVertical: 12,
+  },
   languageButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
@@ -241,7 +291,22 @@ const styles = StyleSheet.create({
   selectedLanguageButton: {
     backgroundColor: '#6200ee',
   },
+  urlButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginRight: 10,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  selectedUrlButton: {
+    backgroundColor: '#6200ee',
+  },
   languageButtonText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  urlButtonText: {
     fontSize: 16,
     color: '#000',
   },
