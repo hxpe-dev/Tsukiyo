@@ -6,13 +6,6 @@ import RNFS from 'react-native-fs';
 const MANGA_PROGRESS_KEY = '@manga_progress'; // For reading progression
 const MANGA_DOWNLOADS_KEY = '@manga_downloads';
 
-type ReadingProgress = {
-  [mangaId: string]: {
-    chapterId: string;
-    page: number;
-  };
-};
-
 // export const saveMangaList = async (mangaList: any[]) => {
 //   try {
 //     const jsonValue = JSON.stringify(mangaList);
@@ -65,20 +58,20 @@ export const saveReadingProgress = async (
 
 export const getReadingProgress = async (
   mangaId: string
-): Promise<{ chapterId: string; page: number } | null> => {
+): Promise<MangaProgress | null> => {
   try {
-    const raw = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
-    const progressMap: ReadingProgress = raw ? JSON.parse(raw) : {};
-    return progressMap[mangaId] || null;
+    const jsonValue = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
+    const progress: MangaProgress = jsonValue ? JSON.parse(jsonValue) : {};
+    return progress[mangaId] || null;
   } catch (e) {
     console.error('Error loading reading progress', e);
     return null;
   }
 };
 
-export const getAllReadingProgress = async (): Promise<Manga[]> => {
+export const getAllReadingProgress = async (): Promise<MangaProgress[]> => {
   try {
-    const jsonValue = await AsyncStorage.getItem('@manga_progress');
+    const jsonValue = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
     if (!jsonValue) {return [];}
 
     const progress = JSON.parse(jsonValue); // { mangaId: { mangaTitle, mangaCover, chapterId, page }, ... }
@@ -108,8 +101,24 @@ export const getAllReadingProgress = async (): Promise<Manga[]> => {
   }
 };
 
+export const removeReadingProgress = async (mangaId: string): Promise<void> => {
+  try {
+    const raw = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
+    if (!raw) {return;}
+
+    const progressMap = JSON.parse(raw);
+    if (progressMap[mangaId]) {
+      delete progressMap[mangaId];
+      await AsyncStorage.setItem(MANGA_PROGRESS_KEY, JSON.stringify(progressMap));
+    }
+  } catch (e) {
+    console.error('Error removing manga progress', e);
+  }
+};
+
 export const saveChapterImagesLocally = async (
   mangaId: string,
+  mangaTitle: string,
   chapterId: string,
   imageUrls: string[],
 ): Promise<string[]> => {
@@ -143,10 +152,10 @@ export const saveChapterImagesLocally = async (
   const allDownloads: MangaDownloads = raw ? JSON.parse(raw) : {};
 
   if (!allDownloads[mangaId]) {
-    allDownloads[mangaId] = {};
+    allDownloads[mangaId] = { title: mangaTitle }; // Store the manga title
   }
 
-  allDownloads[mangaId][chapterId] = localPaths;
+  allDownloads[mangaId][chapterId] = localPaths; // Store local paths for chapter images
 
   await AsyncStorage.setItem(MANGA_DOWNLOADS_KEY, JSON.stringify(allDownloads));
 
@@ -156,17 +165,84 @@ export const saveChapterImagesLocally = async (
 export const getDownloadedChapter = async (
   mangaId: string,
   chapterId: string
-): Promise<string[] | null> => {
+): Promise<{ title: string, images: string[] } | null> => {
   const raw = await AsyncStorage.getItem(MANGA_DOWNLOADS_KEY);
   const allDownloads: MangaDownloads = raw ? JSON.parse(raw) : {};
 
-  return allDownloads[mangaId]?.[chapterId] || null;
+  const chapter = allDownloads[mangaId]?.[chapterId] || null;
+
+  if (chapter) {
+    return { title: allDownloads[mangaId].title, images: chapter };
+  }
+
+  return null;
 };
 
 export const isChapterDownloaded = async (
   mangaId: string,
   chapterId: string
 ): Promise<boolean> => {
-  const images = await getDownloadedChapter(mangaId, chapterId);
-  return !!images && images.length > 0;
+  const chapter = await getDownloadedChapter(mangaId, chapterId);
+  return chapter ? (chapter.images.length > 0) : false;
+};
+
+export const getAllDownloads = async (): Promise<MangaDownloads> => {
+  try {
+    const raw = await AsyncStorage.getItem(MANGA_DOWNLOADS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    console.error('Failed to load downloads', e);
+    return {};
+  }
+};
+
+export const deleteDownloadedChapter = async (
+  mangaId: string,
+  chapterId: string
+): Promise<MangaDownloads> => {
+  try {
+    const path = `${RNFS.DocumentDirectoryPath}/manga/${mangaId}/${chapterId}`;
+    if (await RNFS.exists(path)) {
+      await RNFS.unlink(path);
+    }
+
+    const raw = await AsyncStorage.getItem(MANGA_DOWNLOADS_KEY);
+    const downloads: MangaDownloads = raw ? JSON.parse(raw) : {};
+
+    if (downloads[mangaId]) {
+      delete downloads[mangaId][chapterId];
+
+      if (Object.keys(downloads[mangaId]).length === 0) {
+        delete downloads[mangaId];
+      }
+
+      await AsyncStorage.setItem(MANGA_DOWNLOADS_KEY, JSON.stringify(downloads));
+    }
+
+    return downloads;
+  } catch (e) {
+    console.error('Error deleting chapter', e);
+    return {};
+  }
+};
+
+export const deleteDownloadedManga = async (
+  mangaId: string
+): Promise<MangaDownloads> => {
+  try {
+    const path = `${RNFS.DocumentDirectoryPath}/manga/${mangaId}`;
+    if (await RNFS.exists(path)) {
+      await RNFS.unlink(path);
+    }
+
+    const raw = await AsyncStorage.getItem(MANGA_DOWNLOADS_KEY);
+    const downloads: MangaDownloads = raw ? JSON.parse(raw) : {};
+    delete downloads[mangaId];
+
+    await AsyncStorage.setItem(MANGA_DOWNLOADS_KEY, JSON.stringify(downloads));
+    return downloads;
+  } catch (e) {
+    console.error('Error deleting manga', e);
+    return {};
+  }
 };

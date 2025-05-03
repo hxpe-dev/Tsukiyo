@@ -80,6 +80,7 @@ export type MangaProgress = {
 
 export type MangaDownloads = {
   [mangaId: string]: {
+    title: string;  // Added manga title
     [chapterId: string]: string[]; // Array of local file paths
   };
 };

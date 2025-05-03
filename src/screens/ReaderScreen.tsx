@@ -11,11 +11,12 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { getChapterImages } from '../api/mangadex';
+import { getChapterImages, isApiRateLimited } from '../api/mangadex';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { saveReadingProgress, saveChapterImagesLocally, getDownloadedChapter, isChapterDownloaded } from '../utils/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
+import RateLimitWarning from '../components/RateLimitWarning';
 
 type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
@@ -24,23 +25,21 @@ const screenHeight = Dimensions.get('window').height;
 
 const ReaderScreen = () => {
   const route = useRoute<ReaderScreenRouteProp>();
-  const { mangaId, mangaTitle, mangaCover, chapters, page, externalUrl } = route.params;
+  const { mangaId, mangaTitle, mangaCover, chapterId, chapters, page, externalUrl } = route.params;
   const isExternal = !!externalUrl;
 
-  const initialChapterId = route.params.chapterId;
-
-  const [activeChapterId, setActiveChapterId] = useState(initialChapterId);
+  const [activeChapterId, setActiveChapterId] = useState(chapterId);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(page || 0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const [showNextChapterButton, setShowNextChapterButton] = useState(false);
   const shouldSetInitialPage = useRef(true);
   const enterFromPreviousChapter = useRef(false);
   const flatListRef = useRef<FlatList>(null);
   const isWebtoon = useRef(false);
   const [imageDimensions, setImageDimensions] = useState<{ [key: string]: { width: number; height: number } }>({});
+  const [rateLimited, setRateLimited] = useState(false);
 
   const currentChapter = chapters.find(ch => ch.id === activeChapterId);
 
@@ -60,7 +59,6 @@ const ReaderScreen = () => {
         Image.getSize(firstImage, (width, height) => resolve({ width, height }), reject);
       });
       isWebtoon.current = imageInfo.height / imageInfo.width > 2.2; // heuristic threshold
-      // isWebtoon.current = false;
     } catch (err) {
       console.error('Failed to detect image size for webtoon detection', err);
       isWebtoon.current = false; // fallback
@@ -71,6 +69,10 @@ const ReaderScreen = () => {
     if (isExternal) {return;}
 
     const preloadNextChapterImages = async () => {
+      if (isApiRateLimited === true) {
+        setRateLimited(true);
+        return;
+      }
       const currentIndex = chapters.findIndex(ch => ch.id === activeChapterId);
       const nextChapter = chapters[currentIndex + 1];
       if (!nextChapter) {return;}
@@ -80,14 +82,21 @@ const ReaderScreen = () => {
 
       try {
         const nextUrls = await getChapterImages(nextChapter.id);
-        await saveChapterImagesLocally(mangaId, nextChapter.id, nextUrls);
-        console.log('Next chapter preloaded');
+        await saveChapterImagesLocally(mangaId, mangaTitle, nextChapter.id, nextUrls);
+        // console.log('Next chapter preloaded');
       } catch (err) {
+        if (err.message === 'RATE_LIMITED') {
+          setRateLimited(true);
+        }
         console.warn('Failed to preload next chapter', err);
       }
     };
 
     const loadImages = async () => {
+      if (isApiRateLimited === true) {
+        setRateLimited(true);
+        return;
+      }
       setLoading(true);
       setError(null);
       setShowNextChapterButton(false);
@@ -97,11 +106,11 @@ const ReaderScreen = () => {
         const downloaded = await getDownloadedChapter(mangaId, activeChapterId);
         if (downloaded) {
           urls = downloaded;
-          console.log('Loaded images from local storage.');
+          // console.log('Loaded images from local storage.');
         } else {
           const fetched = await getChapterImages(activeChapterId);
-          urls = await saveChapterImagesLocally(mangaId, activeChapterId, fetched);
-          console.log('Downloaded and saved chapter locally.');
+          urls = await saveChapterImagesLocally(mangaId, mangaTitle, activeChapterId, fetched);
+          // console.log('Downloaded and saved chapter locally.');
         }
 
         await detectWebtoon(urls);
@@ -119,15 +128,19 @@ const ReaderScreen = () => {
 
         preloadNextChapterImages();
       } catch (err) {
+        if (err.message === 'RATE_LIMITED') {
+          setRateLimited(true);
+        } else {
+          console.error(err);
+        }
         setError('Failed to load chapter images.');
-        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
     loadImages();
-  }, [activeChapterId, chapters, isExternal, mangaId, page]);
+  }, [activeChapterId, chapters, isExternal, mangaId, mangaTitle, page]);
 
   useEffect(() => {
     if (isExternal) {return;}
@@ -146,32 +159,6 @@ const ReaderScreen = () => {
     }
   }, [activeChapterId, chapters, currentChapter, currentPage, externalUrl, isExternal, mangaCover, mangaId, mangaTitle]);
 
-
-
-  useEffect(() => {
-    if (isExternal) {return;}
-
-    const preloadNextPageImage = async () => {
-      if (currentPage < imageUrls.length - 1) {
-        const nextImageUrl = imageUrls[currentPage + 1];
-        if (!preloadedImages.has(nextImageUrl)) {
-          try {
-            await Image.prefetch(nextImageUrl);
-            setPreloadedImages(prev => new Set(prev).add(nextImageUrl));
-          } catch (err) {
-            console.error('Failed to preload next image', err);
-          }
-        }
-      }
-    };
-
-    if (!isWebtoon.current) {
-      preloadNextPageImage();
-    }
-  }, [currentPage, imageUrls, isExternal, preloadedImages]);
-
-
-
   const goToNextChapter = () => {
     const currentIndex = chapters.findIndex(ch => ch.id === activeChapterId);
     const nextChapter = chapters[currentIndex + 1];
@@ -182,6 +169,10 @@ const ReaderScreen = () => {
   };
 
   const goToPreviousChapter = async () => {
+    if (isApiRateLimited === true) {
+      setRateLimited(true);
+      return;
+    }
     const currentIndex = chapters.findIndex(ch => ch.id === activeChapterId);
     const previousChapter = chapters[currentIndex - 1];
     if (previousChapter) {
@@ -193,7 +184,11 @@ const ReaderScreen = () => {
         setActiveChapterId(previousChapter.id);
         setCurrentPage(urls.length - 1);
       } catch (err) {
-        console.error('Failed to load previous chapter', err);
+        if (err.message === 'RATE_LIMITED') {
+          setRateLimited(true);
+        } else {
+          console.error('Failed to load previous chapter', err);
+        }
       }
     }
   };
@@ -220,8 +215,6 @@ const ReaderScreen = () => {
       }
     }
   }).current;
-
-  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
   const renderItem = ({ item, index }: { item: string; index: number }) => {
     if (isWebtoon.current) {
@@ -280,14 +273,6 @@ const ReaderScreen = () => {
       >
         <TouchableOpacity activeOpacity={1} onPress={handleTap} style={styles.flex1}>
           <Image source={{ uri: item }} style={styles.image} resizeMode="contain" fadeDuration={0} />
-          {index < imageUrls.length - 1 && (
-            <Image
-              source={{ uri: imageUrls[index + 1] }}
-              style={styles.hiddenImage}
-              resizeMode="contain"
-              fadeDuration={0}
-            />
-          )}
         </TouchableOpacity>
       </ScrollView>
     );
@@ -348,8 +333,9 @@ const ReaderScreen = () => {
         horizontal={!isWebtoon.current}
         pagingEnabled={!isWebtoon.current}
         showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={isWebtoon.current}
         onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
+        viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
         initialScrollIndex={!isWebtoon.current ? currentPage : undefined}
         getItemLayout={!isWebtoon.current ? (_, index) => ({
           length: screenWidth,
@@ -358,8 +344,15 @@ const ReaderScreen = () => {
         }) : undefined}
         onEndReached={isWebtoon.current ? () => setShowNextChapterButton(true) : undefined}
         onEndReachedThreshold={0.9}
-        removeClippedSubviews={true}  // Optional, to optimize rendering
+        // PERFORMANCE SETTINGS START
+        removeClippedSubviews={false} // important on Android
+        initialNumToRender={3}
+        maxToRenderPerBatch={3}
+        windowSize={3}
+        updateCellsBatchingPeriod={5}
+        // PERFORMANCE SETTINGS END
       />
+      {rateLimited && <RateLimitWarning />}
     </View>
   );
 };
@@ -403,13 +396,6 @@ const styles = StyleSheet.create({
     width: screenWidth,
     height: screenHeight,
   },
-  // webtoonImage: {
-  //   width: Dimensions.get('window').width,
-  //   resizeMode: 'contain',
-  //   marginBottom: 16,
-  //   height: undefined,
-  //   aspectRatio: 0.2,
-  // },
   nextChapterButtonWrapper: {
     alignItems: 'center',
     marginVertical: 20,
@@ -424,11 +410,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  hiddenImage: {
-    width: 1,
-    height: 1,
-    opacity: 0,
   },
   flex1: {
     flex: 1,

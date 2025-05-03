@@ -1,5 +1,10 @@
 const BASE_URL = 'https://api.mangadex.org';
 
+let isRateLimited = false;
+let rateLimitResetTime = 0;
+
+export const isApiRateLimited = () => isRateLimited;
+
 // Helper: Build query string safely for React Native
 function buildUrl(endpoint: string, params?: Record<string, any>): string {
   let query = '';
@@ -30,8 +35,20 @@ function buildUrl(endpoint: string, params?: Record<string, any>): string {
 
 // Generic fetch wrapper
 export const fetchFromApi = async (endpoint: string, params?: Record<string, any>, urlAddon = '') => {
+  const now = Date.now();
+  if (isRateLimited && now < rateLimitResetTime) {
+    throw new Error('RATE_LIMITED');
+  }
+
   const url = buildUrl(endpoint, params);
   const response = await fetch(`${url}${urlAddon}`);
+
+  if (response.status === 429) {
+    console.warn('Rate limited. Blocking further requests for 60 seconds.');
+    isRateLimited = true;
+    rateLimitResetTime = Date.now() + 60 * 1000;
+    throw new Error('RATE_LIMITED');
+  }
 
   if (!response.ok) {
     throw new Error(`API Error: ${response.status}`);
@@ -63,8 +80,7 @@ export const searchManga = async (title: string, limit = 10) => {
       if (!coverRel) {return manga;}
 
       try {
-        const coverRes = await fetch(`${BASE_URL}/cover/${coverRel.id}`);
-        const coverData = await coverRes.json();
+        const coverData = await fetchFromApi(`/cover/${coverRel.id}`);
         const fileName = coverData?.data?.attributes?.fileName;
 
         return {
@@ -94,14 +110,9 @@ export const getMangaChapters = async (mangaId: string, language: string, page: 
 
 // 🖼️ Get page image URLs for a chapter
 export const getChapterImages = async (chapterId: string) => {
-  const response = await fetch(`${BASE_URL}/at-home/server/${chapterId}`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch images: ${response.status}`);
-  }
+  const data = await fetchFromApi(`/at-home/server/${chapterId}`);
 
-  const data = await response.json();
   const { baseUrl, chapter } = data;
-
   const imageUrls = chapter.data.map(
     (filename: string) => `${baseUrl}/data/${chapter.hash}/${filename}`
   );
@@ -109,20 +120,19 @@ export const getChapterImages = async (chapterId: string) => {
   return imageUrls;
 };
 
-export const getLatestManga = async () => {
+export const getLatestManga = async (limit: number = 10) => {
   try {
-    return searchManga('', 30);
+    return searchManga('', limit);
   } catch (error) {
-    console.error('Error fetching trending manga', error);
+    console.error('Error fetching latest manga', error);
     return [];
   }
 };
 
 export const fetchCoverFileName = async (coverId: string): Promise<string | null> => {
   try {
-    const response = await fetch(`${BASE_URL}/cover/${coverId}`);
-    const json = await response.json();
-    return json.data?.attributes?.fileName || null;
+    const coverData = await fetchFromApi(`/cover/${coverId}`);
+    return coverData.data?.attributes?.fileName || null;
   } catch (error) {
     console.error('Error fetching cover file name:', error);
     return null;
@@ -144,8 +154,7 @@ export const getMangaById = async (mangaId: string) => {
   if (!coverRel) {return manga;}
 
   try {
-    const coverRes = await fetch(`${BASE_URL}/cover/${coverRel.id}`);
-    const coverData = await coverRes.json();
+    const coverData = await fetchFromApi(`/cover/${coverRel.id}`);
     const fileName = coverData?.data?.attributes?.fileName;
 
     return {

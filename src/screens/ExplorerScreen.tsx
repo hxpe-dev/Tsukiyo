@@ -9,16 +9,19 @@ import {
   FlatList,
   Dimensions,
   ActivityIndicator,
+  TouchableOpacity,
   ViewToken,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import HorizontalListDisplayer from '../components/HorizontalListDisplayer';
 import Card from '../components/Card';
 import { Manga } from '../types/mangadex';
-import { getLatestManga, searchManga } from '../api/mangadex';
+import { getLatestManga, searchManga, isApiRateLimited } from '../api/mangadex';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import RateLimitWarning from '../components/RateLimitWarning';
+import Icon from 'react-native-vector-icons/Feather';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -32,6 +35,8 @@ export default function ExplorerScreen() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] = useState(true);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem('vertical_card_animations').then((val) => {
@@ -46,16 +51,24 @@ export default function ExplorerScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
-    loadTrendingManga();
+    loadLatestManga();
   }, []);
 
-  const loadTrendingManga = async () => {
+  const loadLatestManga = async () => {
+    if (isApiRateLimited === true) {
+      setRateLimited(true);
+      return;
+    }
     setLoading(true);
     try {
-      const mangaData = await getLatestManga();
+      const mangaData = await getLatestManga(15);
       setLatestManga(mangaData);
     } catch (error) {
-      console.error('Failed to fetch trending manga', error);
+      if (error.message === 'RATE_LIMITED') {
+        setRateLimited(true);
+      } else {
+        console.error('Failed to fetch latest manga', error);
+      }
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -66,17 +79,27 @@ export default function ExplorerScreen() {
     setIsRefreshing(true);
     setSearchResults([]);
     setSearchQuery('');
-    loadTrendingManga();
+    setHasSearched(false);
+    loadLatestManga();
   };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {return;}
+    if (isApiRateLimited === true) {
+      setRateLimited(true);
+      return;
+    }
+    setHasSearched(true);
     setIsSearching(true);
     try {
-      const results = await searchManga(searchQuery.trim(), 100);
+      const results = await searchManga(searchQuery.trim(), 30);
       setSearchResults(results);
     } catch (error) {
-      console.error('Search error:', error);
+      if (error.message === 'RATE_LIMITED') {
+        setRateLimited(true);
+      } else {
+        console.error('Search error:', error);
+      }
     } finally {
       setIsSearching(false);
     }
@@ -85,6 +108,13 @@ export default function ExplorerScreen() {
   const handleNavigateToInfo = useCallback((item: Manga) => {
     navigation.navigate('Info', { item });
   }, [navigation]);
+
+  const handleCancelSearch = () => {
+    setIsSearching(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    setHasSearched(false);
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -133,51 +163,61 @@ export default function ExplorerScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.headerText}>Manga Explorer</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search manga..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={handleSearch}
-            returnKeyType="search"
-          />
+          <View style={styles.searchContainer}>
+            {(isSearching || hasSearched) && (
+              <TouchableOpacity onPress={handleCancelSearch} style={styles.cancelButton}>
+                <Icon name="chevron-left" size={24} color="#008000" />
+              </TouchableOpacity>
+            )}
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search manga..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
+              returnKeyType="search"
+            />
+          </View>
         </View>
 
         {isSearching ? (
           // eslint-disable-next-line react-native/no-inline-styles
           <ActivityIndicator style={{ marginTop: 32 }} size="small" color="#4f46e5" />
-        ) : searchResults.length > 0 ? (
-          <FlatList
-            ref={flatListRef}
-            data={searchResults}
-            keyExtractor={(item) => item.id}
-            numColumns={3}
-            // PERFORMANCE SETTINGS START
-            initialNumToRender={12} // render only x items initially
-            maxToRenderPerBatch={12} // render x more every batch
-            windowSize={6} // smaller window keeps memory usage low
-            removeClippedSubviews={true} // important on Android
-            // PERFORMANCE SETTINGS END
-            renderItem={renderSearchItem}
-            contentContainerStyle={styles.grid}
-            columnWrapperStyle={styles.row}
-            onViewableItemsChanged={onViewableItemsChanged}
-            viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
-            scrollEnabled={false}
-          />
+        ) : hasSearched ? (
+          searchResults.length > 0 ? (
+            <FlatList
+              ref={flatListRef}
+              data={searchResults}
+              keyExtractor={(item) => item.id}
+              numColumns={3}
+              // PERFORMANCE SETTINGS START
+              initialNumToRender={12} // render only x items initially
+              maxToRenderPerBatch={12} // render x more every batch
+              windowSize={6} // smaller window keeps memory usage low
+              removeClippedSubviews={true} // important on Android
+              // PERFORMANCE SETTINGS END
+              renderItem={renderSearchItem}
+              contentContainerStyle={styles.grid}
+              columnWrapperStyle={styles.row}
+              onViewableItemsChanged={onViewableItemsChanged}
+              viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
+              scrollEnabled={false}
+            />
+          ) : (
+            <Text style={styles.noResultsText}>No results for your search.</Text>
+          )
         ) : (
-          <>
-            {latestManga.length > 0 && (
-              <HorizontalListDisplayer
-                title="Latests Mangas"
-                list={latestManga}
-                onCardClick={handleNavigateToInfo}
-                onCardLongPress={handleNavigateToInfo}
-              />
-            )}
-          </>
+          latestManga.length > 0 && (
+            <HorizontalListDisplayer
+              title="Latests Mangas"
+              list={latestManga}
+              onCardClick={handleNavigateToInfo}
+              onCardLongPress={handleNavigateToInfo}
+            />
+          )
         )}
       </ScrollView>
+      {rateLimited && <RateLimitWarning />}
     </View>
   );
 }
@@ -201,6 +241,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 12,
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   searchInput: {
     backgroundColor: 'transparent',
     borderRadius: 100,
@@ -209,6 +253,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderColor: '#ccc',
     borderWidth: 1,
+    flex: 1,
+  },
+  cancelButton: {
+    marginRight: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  noResultsText: {
+    textAlign: 'center',
+    marginTop: 32,
+    fontSize: 16,
+    color: '#666',
   },
   grid: {
     paddingTop: 8,

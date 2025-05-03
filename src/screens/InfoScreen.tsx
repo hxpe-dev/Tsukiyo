@@ -5,8 +5,10 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import { getMangaById, getMangaChapters } from '../api/mangadex';
 import { Chapter, Manga } from '../types/mangadex';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { isChapterDownloaded } from '../utils/storage';
+import { isChapterDownloaded, getReadingProgress } from '../utils/storage';
 import Icon from 'react-native-vector-icons/Feather';
+import RateLimitWarning from '../components/RateLimitWarning';
+import { isApiRateLimited } from '../api/mangadex';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InfoScreenRouteProp = RouteProp<RootStackParamList, 'Info'>;
@@ -24,14 +26,20 @@ const InfoScreen = () => {
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedUrl, setSelectedUrl] = useState<string | null>('all');
+  const [readingProgress, setReadingProgress] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMoreChapters, setHasMoreChapters] = useState<boolean>(true);
   const [downloadedChapterIds, setDownloadedChapterIds] = useState<Set<string>>(new Set());
+  const [rateLimited, setRateLimited] = useState(false);
 
   const isManga = (obj: any): obj is Manga => 'attributes' in obj;
 
   useEffect(() => {
     const resolveManga = async () => {
+      if (isApiRateLimited === true) {
+        setRateLimited(true);
+        return;
+      }
       if (isManga(item)) {
         setManga(item);
       } else {
@@ -39,7 +47,11 @@ const InfoScreen = () => {
           const fullManga = await getMangaById(item.id);
           setManga(fullManga);
         } catch (error) {
-          console.error('Failed to fetch full manga:', error);
+          if (error.message === 'RATE_LIMITED') {
+            setRateLimited(true);
+          } else {
+            console.error('Failed to fetch full manga:', error);
+          }
         }
       }
     };
@@ -49,8 +61,13 @@ const InfoScreen = () => {
 
   useEffect(() => {
     if (!manga) {return;}
+    const getMangaProgress = async () => {
+      const mangaProgress = await getReadingProgress(manga.id);
+      setReadingProgress(mangaProgress);
+    };
     const languages = manga.attributes.availableTranslatedLanguages;
     setAvailableLanguages(languages);
+    getMangaProgress();
   }, [manga]);
 
   useEffect(() => {
@@ -65,6 +82,10 @@ const InfoScreen = () => {
   useEffect(() => {
     const fetchChapters = async () => {
       if (!manga || !hasMoreChapters || loading) {return;}
+      if (isApiRateLimited === true) {
+        setRateLimited(true);
+        return;
+      }
 
       setLoading(true);
 
@@ -99,7 +120,11 @@ const InfoScreen = () => {
           }
         }
       } catch (error) {
-        console.error('Failed to fetch chapters:', error);
+        if (error.message === 'RATE_LIMITED') {
+          setRateLimited(true);
+        } else {
+          console.error('Failed to fetch chapters:', error);
+        }
       } finally {
         setLoading(false);
       }
@@ -226,11 +251,28 @@ const InfoScreen = () => {
       </ScrollView>
       <TouchableOpacity
         style={styles.startButton}
-        onPress={() => handleStartReading(chapters[0]?.id, chapters[0]?.attributes.externalUrl || null)}
+        onPress={() => {
+          if (readingProgress?.chapterId) {
+            navigation.navigate('Reader', {
+              mangaId: manga.id,
+              mangaTitle: readingProgress.mangaTitle,
+              mangaCover: readingProgress.mangaCover,
+              chapterId: readingProgress.chapterId,
+              chapters: readingProgress.chapters,
+              page: readingProgress.page,
+              externalUrl: readingProgress.externalUrl || null,
+            });
+          } else {
+            handleStartReading(chapters[0]?.id, chapters[0]?.attributes.externalUrl || null);
+          }
+        }}
       >
-        <Text style={styles.startButtonText}>Start Reading</Text>
+        <Text style={styles.startButtonText}>
+          {readingProgress?.chapterId ? 'Continue Reading' : 'Start Reading'}
+        </Text>
       </TouchableOpacity>
       <Text style={styles.sectionHeader}>Chapters</Text>
+      {rateLimited && <RateLimitWarning />}
     </View>
   );
 

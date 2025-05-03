@@ -13,7 +13,9 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
   // loadMangaListFromStorage,
   getAllReadingProgress,
+  removeReadingProgress,
 } from '../utils/storage';
+import MangaOptionsModal from '../components/MangaOptionsModal';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -23,6 +25,8 @@ export default function HomeScreen() {
   const [currentlyReadingList, setCurrentlyReadingList] = useState<MangaProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedManga, setSelectedManga] = useState<MangaProgress | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -59,6 +63,33 @@ export default function HomeScreen() {
     navigation.navigate('Info', { item });
   };
 
+  const handleCardLongPress = (item: MangaProgress) => {
+    setSelectedManga(item);
+    setIsModalVisible(true);
+  };
+
+  const handleContinueReading = () => {
+    if (selectedManga) {
+      handleNavigateToReader(selectedManga);
+      setIsModalVisible(false);
+    }
+  };
+
+  const handleOpenInfo = () => {
+    if (selectedManga) {
+      handleNavigateToInfo(selectedManga);
+      setIsModalVisible(false);
+    }
+  };
+
+  const handleRemoveFromReading = async () => {
+    if (selectedManga) {
+      await removeReadingProgress(selectedManga.id);
+      loadData();
+      setIsModalVisible(false);
+    }
+  };
+
   return (
     <ScrollView
       contentContainerStyle={styles.scrollView}
@@ -78,11 +109,19 @@ export default function HomeScreen() {
               title="Currently Reading"
               list={currentlyReadingList}
               onCardClick={handleNavigateToReader}
-              onCardLongPress={handleNavigateToInfo}
+              onCardLongPress={handleCardLongPress}
             />
           )}
         </>
       )}
+      <MangaOptionsModal
+        visible={isModalVisible}
+        manga={selectedManga}
+        onClose={() => setIsModalVisible(false)}
+        onContinue={handleContinueReading}
+        onInfo={handleOpenInfo}
+        onRemove={handleRemoveFromReading}
+      />
     </ScrollView>
   );
 }
