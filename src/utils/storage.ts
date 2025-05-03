@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MangaProgress, MangaDownloads, Chapter } from '../types/mangadex';
+import RNFS from 'react-native-fs';
 
 // const MANGA_PLANNING_KEY = '@manga_planning'; // Static key for manga list
 const MANGA_PROGRESS_KEY = '@manga_progress'; // For reading progression
@@ -114,25 +115,33 @@ export const saveChapterImagesLocally = async (
 ): Promise<string[]> => {
   const localPaths: string[] = [];
 
+  const dirPath = `${RNFS.DocumentDirectoryPath}/manga/${mangaId}/${chapterId}`;
+  await RNFS.mkdir(dirPath); // Make sure the folder exists
+
   for (let i = 0; i < imageUrls.length; i++) {
     const imageUrl = imageUrls[i];
     const filename = `page_${i}.jpg`;
-    const dirPath = `${FileSystem.documentDirectory}manga/${mangaId}/${chapterId}/`;
-    const filePath = `${dirPath}${filename}`;
-
-    await FileSystem.makeDirectoryAsync(dirPath, { intermediates: true });
+    const filePath = `${dirPath}/${filename}`;
 
     try {
-      await FileSystem.downloadAsync(imageUrl, filePath);
-      localPaths.push(filePath);
+      const result = await RNFS.downloadFile({
+        fromUrl: imageUrl,
+        toFile: filePath,
+      }).promise;
+
+      if (result.statusCode === 200) {
+        localPaths.push('file://' + filePath);
+      } else {
+        console.warn(`Failed to download image ${i}: status ${result.statusCode}`);
+      }
     } catch (e) {
-      console.error(`Failed to download image ${i} for chapter ${chapterId}`, e);
+      console.error(`Failed to download image ${i}`, e);
     }
   }
 
-  // Save to AsyncStorage
   const raw = await AsyncStorage.getItem(MANGA_DOWNLOADS_KEY);
   const allDownloads: MangaDownloads = raw ? JSON.parse(raw) : {};
+
   if (!allDownloads[mangaId]) {
     allDownloads[mangaId] = {};
   }

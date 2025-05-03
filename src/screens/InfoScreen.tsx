@@ -5,6 +5,8 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import { getMangaById, getMangaChapters } from '../api/mangadex';
 import { Chapter, Manga } from '../types/mangadex';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { isChapterDownloaded } from '../utils/storage';
+import Icon from 'react-native-vector-icons/Feather';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InfoScreenRouteProp = RouteProp<RootStackParamList, 'Info'>;
@@ -24,6 +26,7 @@ const InfoScreen = () => {
   const [selectedUrl, setSelectedUrl] = useState<string | null>('all');
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMoreChapters, setHasMoreChapters] = useState<boolean>(true);
+  const [downloadedChapterIds, setDownloadedChapterIds] = useState<Set<string>>(new Set());
 
   const isManga = (obj: any): obj is Manga => 'attributes' in obj;
 
@@ -81,6 +84,16 @@ const InfoScreen = () => {
             setMangadexChapters((prev) => [...prev, ...mangadex]);
             setExternalChapters((prev) => [...prev, ...external]);
             setCurrentPage((prev) => prev + 1);
+
+            // Check which chapters are downloaded
+            const newDownloadedIds = new Set(downloadedChapterIds);
+            await Promise.all(
+              newChapters.map(async (chapter) => {
+                const downloaded = await isChapterDownloaded(manga.id, chapter.id);
+                if (downloaded) {newDownloadedIds.add(chapter.id);}
+              })
+            );
+            setDownloadedChapterIds(newDownloadedIds);
           } else {
             setHasMoreChapters(false);
           }
@@ -93,7 +106,7 @@ const InfoScreen = () => {
     };
 
     fetchChapters();
-  }, [manga, selectedLanguage, currentPage, hasMoreChapters, loading, chapters]);
+  }, [manga, selectedLanguage, currentPage, hasMoreChapters, loading, chapters, downloadedChapterIds]);
 
   const handleStartReading = (chapterId?: string, externalUrl?: string | null) => {
     if (chapterId && manga) {
@@ -110,14 +123,25 @@ const InfoScreen = () => {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
-  const renderChapterItem = ({ item }: { item: Chapter }) => (
-    <TouchableOpacity style={styles.chapterItem} onPress={() => handleStartReading(item.id, item.attributes.externalUrl)}>
-      <Text style={styles.chapterTitle}>
-        Chapter {item.attributes.chapter || '?'}: {item.attributes.title || 'No title'}
-        {item.attributes.externalUrl ? ' (External)' : ''}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderChapterItem = ({ item }: { item: Chapter }) => {
+    const isDownloaded = downloadedChapterIds.has(item.id);
+    return (
+      <TouchableOpacity
+        style={styles.chapterItem}
+        onPress={() => handleStartReading(item.id, item.attributes.externalUrl)}
+      >
+        <View style={styles.chapterRow}>
+          <Text style={styles.chapterTitle}>
+            Chapter {item.attributes.chapter || '?'}: {item.attributes.title || 'No title'}
+            {item.attributes.externalUrl ? ' (External)' : ''}
+          </Text>
+          {isDownloaded && (
+            <Icon name="check" size={24} color="#008000" style={styles.checkIcon} />
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const handleEndReached = () => {
     if (!loading && hasMoreChapters) {
@@ -260,6 +284,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  chapterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   chapterItem: {
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -267,6 +296,9 @@ const styles = StyleSheet.create({
   },
   chapterTitle: {
     fontSize: 16,
+  },
+  checkIcon: {
+    marginLeft: 8,
   },
   sectionHeader: {
     fontSize: 18,
