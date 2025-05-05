@@ -22,6 +22,8 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RateLimitWarning from '../components/RateLimitWarning';
 import Icon from 'react-native-vector-icons/Feather';
+import { useTheme } from '../context/ThemeContext';
+import PageLoading from '../components/PageLoading';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -31,6 +33,10 @@ const SEARCH_CARD_SIZE = (width - SEARCH_CARD_MARGIN * 4) / 3;
 
 export default function ExplorerScreen() {
   const navigation = useNavigation<NavigationProp>();
+
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   const [latestManga, setLatestManga] = useState<Manga[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -151,9 +157,7 @@ export default function ExplorerScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4f46e5" />
-      </View>
+      <PageLoading/>
     );
   }
 
@@ -168,12 +172,13 @@ export default function ExplorerScreen() {
           <View style={styles.searchContainer}>
             {(isSearching || hasSearched) && (
               <TouchableOpacity onPress={handleCancelSearch} style={styles.cancelButton}>
-                <Icon name="chevron-left" size={24} color="#008000" />
+                <Icon name="chevron-left" size={24} color={theme.button} />
               </TouchableOpacity>
             )}
             <TextInput
               style={styles.searchInput}
               placeholder="Search manga..."
+              placeholderTextColor={theme.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
               onSubmitEditing={handleSearch}
@@ -184,7 +189,7 @@ export default function ExplorerScreen() {
 
         {isSearching ? (
           // eslint-disable-next-line react-native/no-inline-styles
-          <ActivityIndicator style={{ marginTop: 32 }} size="small" color="#4f46e5" />
+          <ActivityIndicator style={{ marginTop: 32 }} size="small" color={theme.button} />
         ) : hasSearched ? (
           searchResults.length > 0 ? (
             <FlatList
@@ -224,55 +229,53 @@ export default function ExplorerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f2f2f2',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    marginTop: 16,
-    paddingHorizontal: 16,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  searchInput: {
-    backgroundColor: 'transparent',
-    borderRadius: 100,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontSize: 16,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    flex: 1,
-  },
-  cancelButton: {
-    marginRight: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  noResultsText: {
-    textAlign: 'center',
-    marginTop: 32,
-    fontSize: 16,
-    color: '#666',
-  },
-  grid: {
-    paddingTop: 8,
-    paddingBottom: 80,
-  },
-  row: {
-    justifyContent: 'space-between',
-  },
-});
+const useThemedStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      marginTop: 16,
+      paddingHorizontal: 16,
+    },
+    headerText: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 12,
+      color: theme.text,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    searchInput: {
+      backgroundColor: theme.inputBackground,
+      borderRadius: 100,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      fontSize: 16,
+      borderColor: theme.border,
+      borderWidth: 1,
+      color: theme.text,
+      flex: 1,
+    },
+    cancelButton: {
+      marginRight: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+    },
+    noResultsText: {
+      textAlign: 'center',
+      marginTop: 32,
+      fontSize: 16,
+      color: theme.subtleText,
+    },
+    grid: {
+      paddingTop: 8,
+      paddingBottom: 80,
+    },
+    row: {
+      justifyContent: 'space-between',
+    },
+  });

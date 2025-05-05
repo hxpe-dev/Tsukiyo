@@ -7,6 +7,7 @@ import { MainStackParamList } from '../screens/MainLayout';
 import MainLayout from '../screens/MainLayout';
 import { Chapter, Manga } from '../types/mangadex';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../context/ThemeContext';
 
 export type RootStackParamList = {
   Main: { screen?: keyof MainStackParamList };
@@ -18,10 +19,11 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
+  const { theme } = useTheme();
   // All screens where navbar doesn't appear
   return (
     // eslint-disable-next-line react-native/no-inline-styles
-    <SafeAreaView style={{flex: 1, backgroundColor: 'transparent'}} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView style={{flex: 1, backgroundColor: theme.background}} edges={['top', 'bottom', 'left', 'right']}>
       <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Main" component={MainLayout} />
         <Stack.Screen name="Settings" component={SettingsScreen} options={{presentation: 'modal'}}/>

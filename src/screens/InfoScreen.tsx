@@ -8,6 +8,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { isChapterDownloaded, getReadingProgress } from '../utils/storage';
 import Icon from 'react-native-vector-icons/Feather';
 import RateLimitWarning from '../components/RateLimitWarning';
+import { useTheme } from '../context/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InfoScreenRouteProp = RouteProp<RootStackParamList, 'Info'>;
@@ -16,6 +17,9 @@ const InfoScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<InfoScreenRouteProp>();
   const item = route.params.item;
+
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
 
   const [manga, setManga] = useState<Manga | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -156,7 +160,7 @@ const InfoScreen = () => {
       >
         <View style={styles.chapterRow}>
           <Text style={styles.chapterTitle}>
-            Chapter {item.attributes.chapter || '?'}: {item.attributes.title || 'No title'}
+            Chapter {item.attributes.chapter || '?'} {item.attributes.title ? ': ' + item.attributes.title : ''}
             {item.attributes.externalUrl ? ' (External)' : ''}
           </Text>
           {isDownloaded && (
@@ -222,7 +226,10 @@ const InfoScreen = () => {
             ]}
             onPress={() => setSelectedUrl('all')}
           >
-            <Text style={styles.urlButtonText}>All</Text>
+            <Text style={[
+              styles.urlButtonText,
+              selectedUrl === 'all' && styles.selectedUrlButtonText,
+            ]}>All</Text>
           </TouchableOpacity>
         )}
         {mangadexChapters.length > 0 && (
@@ -233,7 +240,10 @@ const InfoScreen = () => {
             ]}
             onPress={() => setSelectedUrl('mangadex')}
           >
-            <Text style={styles.urlButtonText}>Mangadex</Text>
+            <Text style={[
+              styles.urlButtonText,
+              selectedUrl === 'mangadex' && styles.selectedUrlButtonText,
+            ]}>Mangadex</Text>
           </TouchableOpacity>
         )}
         {externalChapters.length > 0 && (
@@ -244,7 +254,10 @@ const InfoScreen = () => {
             ]}
             onPress={() => setSelectedUrl('external')}
           >
-            <Text style={styles.urlButtonText}>External</Text>
+            <Text style={[
+              styles.urlButtonText,
+              selectedUrl === 'external' && styles.selectedUrlButtonText,
+            ]}>External</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -289,103 +302,112 @@ const InfoScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  coverImage: {
-    width: '100%',
-    height: 350,
-    borderRadius: 10,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 14,
-    marginBottom: 6,
-  },
-  description: {
-    fontSize: 16,
-    marginTop: 12,
-  },
-  startButton: {
-    backgroundColor: '#6200ee',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  startButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  chapterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  chapterItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  chapterTitle: {
-    fontSize: 16,
-  },
-  checkIcon: {
-    marginLeft: 8,
-  },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  languageScroller: {
-    marginVertical: 12,
-  },
-  urlScroller: {
-    marginVertical: 12,
-  },
-  languageButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginRight: 10,
-    backgroundColor: '#f1f1f1',
-    borderRadius: 20,
-    alignItems: 'center',
-  },
-  selectedLanguageButton: {
-    backgroundColor: '#6200ee',
-  },
-  urlButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginRight: 10,
-    backgroundColor: '#f1f1f1',
-    borderRadius: 20,
-    alignItems: 'center',
-  },
-  selectedUrlButton: {
-    backgroundColor: '#6200ee',
-  },
-  languageButtonText: {
-    fontSize: 16,
-    color: '#000',
-  },
-  urlButtonText: {
-    fontSize: 16,
-    color: '#000',
-  },
-  selectedLanguageButtonText: {
-    color: '#fff',
-  },
-});
+const useThemedStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      padding: 16,
+      backgroundColor: theme.background,
+    },
+    coverImage: {
+      width: '100%',
+      height: 350,
+      borderRadius: 10,
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      marginBottom: 12,
+      color: theme.text,
+    },
+    label: {
+      fontSize: 14,
+      marginBottom: 6,
+      color: theme.text,
+    },
+    description: {
+      fontSize: 16,
+      marginTop: 12,
+      color: theme.text,
+    },
+    startButton: {
+      paddingVertical: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginVertical: 16,
+      backgroundColor: theme.bigButton,
+    },
+    startButtonText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.buttonText,
+    },
+    chapterRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    chapterItem: {
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    chapterTitle: {
+      fontSize: 16,
+      color: theme.text,
+    },
+    checkIcon: {
+      marginLeft: 8,
+    },
+    sectionHeader: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginTop: 20,
+      marginBottom: 10,
+      color: theme.text,
+    },
+    languageScroller: {
+      marginVertical: 12,
+    },
+    urlScroller: {
+      marginVertical: 12,
+    },
+    languageButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      marginRight: 10,
+      backgroundColor: theme.unselectedButton,
+      borderRadius: 20,
+      alignItems: 'center',
+    },
+    selectedLanguageButton: {
+      backgroundColor: theme.button,
+    },
+    urlButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      marginRight: 10,
+      backgroundColor: theme.unselectedButton,
+      borderRadius: 20,
+      alignItems: 'center',
+    },
+    selectedUrlButton: {
+      backgroundColor: theme.button,
+    },
+    languageButtonText: {
+      fontSize: 16,
+      color: theme.text,
+    },
+    urlButtonText: {
+      fontSize: 16,
+      color: theme.text,
+    },
+    selectedLanguageButtonText: {
+      color: theme.buttonText,
+    },
+    selectedUrlButtonText: {
+      color: theme.buttonText,
+    },
+  });
 
 export default InfoScreen;

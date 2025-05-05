@@ -10,6 +10,7 @@ import {
 import Icon from 'react-native-vector-icons/Feather';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNFS from 'react-native-fs'; // if using file system for image storage
+import { useTheme } from '../context/ThemeContext';
 
 interface DownloadedChapter {
   id: string;
@@ -25,6 +26,9 @@ interface DownloadedManga {
 }
 
 export default function DownloadedManager() {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   const [downloadedData, setDownloadedData] = useState<DownloadedManga[]>([]);
   const [expandedMangaIds, setExpandedMangaIds] = useState<Set<string>>(new Set());
 
@@ -129,36 +133,39 @@ export default function DownloadedManager() {
   );
 }
 
-const styles = StyleSheet.create({
-  mangaContainer: {
-    marginVertical: 8,
-    padding: 12,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    marginHorizontal: 16,
-    elevation: 2,
-  },
-  mangaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  mangaTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginRight: 8,
-  },
-  chapterRow: {
-    marginTop: 8,
-    paddingLeft: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  chapterText: {
-    fontSize: 16,
-  },
-  flexRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-});
+const useThemedStyles = (theme: any) =>
+  StyleSheet.create({
+    mangaContainer: {
+      marginVertical: 8,
+      padding: 12,
+      backgroundColor: theme.background,
+      borderRadius: 10,
+      marginHorizontal: 16,
+      elevation: 2,
+    },
+    mangaRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    mangaTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginRight: 8,
+      color: theme.text,
+    },
+    chapterRow: {
+      marginTop: 8,
+      paddingLeft: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    chapterText: {
+      fontSize: 16,
+      color: theme.text,
+    },
+    flexRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+  });

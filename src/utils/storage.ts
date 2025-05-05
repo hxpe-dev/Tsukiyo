@@ -62,7 +62,6 @@ export const getReadingProgress = async (
   try {
     const jsonValue = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
     const progress: MangaProgress = jsonValue ? JSON.parse(jsonValue) : {};
-    console.log('getting reading progress');
     return progress[mangaId] || null;
   } catch (e) {
     console.error('Error loading reading progress', e);
@@ -75,7 +74,7 @@ export const getAllReadingProgress = async (): Promise<MangaProgressItem[]> => {
     const jsonValue = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
     if (!jsonValue) {return [];}
 
-    const progress = JSON.parse(jsonValue); // { mangaId: { mangaTitle, mangaCover, chapterId, page }, ... }
+    const progress = JSON.parse(jsonValue);
 
     const mangaList: MangaProgressItem[] = Object.entries(progress).map(([id, entry]: any) => ({
       id,

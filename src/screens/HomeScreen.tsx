@@ -2,8 +2,6 @@ import React, { useCallback, useState } from 'react';
 import {
   Text,
   ScrollView,
-  View,
-  ActivityIndicator,
   StyleSheet,
   RefreshControl,
 } from 'react-native';
@@ -18,6 +16,8 @@ import {
 import MangaOptionsModal from '../components/MangaOptionsModal';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { useTheme } from '../context/ThemeContext';
+import PageLoading from '../components/PageLoading';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -29,6 +29,8 @@ export default function HomeScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedManga, setSelectedManga] = useState<MangaProgressItem | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
 
   const loadData = async () => {
     setLoading(true);
@@ -105,9 +107,7 @@ export default function HomeScreen() {
         Tsukiyo
       </Text>
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4f46e5" />
-        </View>
+        <PageLoading/>
       ) : (
         <>
           {currentlyReadingList.length > 0 && (
@@ -132,26 +132,24 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  title: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 16,
-    paddingLeft: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollView: {
-    backgroundColor: '#f2f2f2',
-    paddingBottom: 32,
-  },
-  noMangaTextContainer: {
-    marginTop: 16,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-});
+const useThemedStyles = (theme: any) =>
+  StyleSheet.create({
+    title: {
+      fontSize: 30,
+      fontWeight: 'bold',
+      marginTop: 16,
+      marginBottom: 16,
+      paddingLeft: 16,
+      color: theme.text,
+    },
+    scrollView: {
+      flex: 1,
+      backgroundColor: theme.background,
+      paddingBottom: 32,
+    },
+    noMangaTextContainer: {
+      marginTop: 16,
+      paddingHorizontal: 16,
+      alignItems: 'center',
+    },
+  });

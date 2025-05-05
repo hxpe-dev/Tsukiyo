@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { MangaDownloads } from '../types/mangadex';
+import { useTheme } from '../context/ThemeContext';
 
 import {
   getAllDownloads,
@@ -25,6 +26,10 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
+
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   const [downloads, setDownloads] = useState<MangaDownloads>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sizes, setSizes] = useState<{ [mangaId: string]: number }>({});
@@ -136,7 +141,7 @@ export default function ProfileScreen() {
       <View style={styles.profileHeader}>
         <Text style={styles.profileText}>Profile</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-          <Icon name="settings" size={24} color="#4f46e5" />
+          <Icon name="settings" size={24} color={theme.button} />
         </TouchableOpacity>
       </View>
 
@@ -151,61 +156,68 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-  },
-  profileHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  profileText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  mangaDownloadsText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  mangaContainer: {
-    marginBottom: 15,
-    backgroundColor: '#f9f9f9',
-    padding: 10,
-    borderRadius: 5,
-    elevation: 2,
-  },
-  mangaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  flexRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  mangaTitle: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  fileSize: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  chapterRow: {
-    marginTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  chapterText: {
-    fontSize: 14,
-    color: '#555',
-  },
-  chevronIcon: {
-    marginLeft: 8,
-  },
-});
+const useThemedStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 10,
+      backgroundColor: theme.background,
+    },
+    profileHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 15,
+    },
+    profileText: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.text,
+    },
+    mangaDownloadsText: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginBottom: 8,
+      color: theme.text,
+    },
+    mangaContainer: {
+      marginBottom: 15,
+      backgroundColor: theme.elevatedBackground,
+      padding: 10,
+      borderRadius: 5,
+      elevation: 2,
+    },
+    mangaRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    flexRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    mangaTitle: {
+      fontWeight: 'bold',
+      fontSize: 16,
+      color: theme.text,
+    },
+    fileSize: {
+      fontWeight: 'bold',
+      fontSize: 16,
+      color: theme.text,
+    },
+    chapterRow: {
+      marginTop: 10,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    chapterText: {
+      fontSize: 14,
+      color: theme.textSecondary,
+    },
+    chevronIcon: {
+      marginLeft: 8,
+      color: theme.button,
+    },
+  });

@@ -5,9 +5,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './HomeScreen';
 import ExplorerScreen from './ExplorerScreen';
 import ProfileScreen from './ProfileScreen';
-// import { useRoute } from '@react-navigation/native';
-// import type { RouteProp } from '@react-navigation/native';
-// import { RootStackParamList } from '../navigation/AppNavigator';
 
 export type MainStackParamList = {
   Home: undefined;
@@ -18,13 +15,11 @@ export type MainStackParamList = {
 const MainStack = createNativeStackNavigator<MainStackParamList>();
 
 export default function MainLayout() {
-  // const route = useRoute<RouteProp<RootStackParamList, 'Main'>>();
   // All screens where navbar appears
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <MainStack.Navigator
-          // initialRouteName={route.params?.screen ?? 'Home'} // <--- use param if available
           initialRouteName="Home"
           screenOptions={{ headerShown: false }}
         >

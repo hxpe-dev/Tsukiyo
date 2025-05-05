@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Text, Image, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import { Manga, MangaProgress } from '../types/mangadex';
+import { useTheme } from '../context/ThemeContext';
 
 interface CardProps {
   item: Manga | MangaProgress;
@@ -25,6 +26,9 @@ const Card: React.FC<CardProps> = ({
   onClick,
   onLongPress,
 }) => {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   const animation = useState(new Animated.Value(0.3))[0];
   const wasVisible = useRef(false);
   const currentlyAnimatingCount = useRef(0);
@@ -56,7 +60,7 @@ const Card: React.FC<CardProps> = ({
   }, [isVisible, animation]);
 
   const isManga = (obj: any): obj is Manga => 'attributes' in obj;
-  const title = isManga(item) ? item.attributes.title.en : item.title;
+  const title = isManga(item) ? item.attributes.title.en ?? 'No Title' : item.title ?? 'No Title';
   const cover = isManga(item)
     ? `https://uploads.mangadex.org/covers/${item.id}/${item.coverFileName}.512.jpg`
     : item.cover;
@@ -84,6 +88,7 @@ const Card: React.FC<CardProps> = ({
       width: size,
       textAlign: 'left' as const,
       marginTop: 4,
+      color: theme.text,
     },
   };
 
@@ -120,27 +125,13 @@ const Card: React.FC<CardProps> = ({
 
 export default Card;
 
-const styles = StyleSheet.create({
-  progressText: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  incrementButton: {
-    marginLeft: 8,
-    backgroundColor: '#d1d5db',
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  incrementButtonText: {
-    color: '#6b7280',
-    fontWeight: 'bold',
-  },
-  chapterInfo: {
-    fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'left',
-    width: '100%',
-    marginTop: 2,
-  },
-});
+const useThemedStyles = (theme: any) =>
+  StyleSheet.create({
+    chapterInfo: {
+      fontSize: 12,
+      color: theme.textSecondary,
+      textAlign: 'left',
+      width: '100%',
+      marginTop: 2,
+    },
+  });

@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { DisplayableManga } from '../types/mangadex';
 import Card from './Card';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
 
 interface Props {
   title: string;
@@ -12,6 +13,9 @@ interface Props {
 }
 
 export default function HorizontalListDisplayer({ title, list, onCardClick, onCardLongPress }: Props) {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   const [viewableItems, setViewableItems] = useState<any[]>([]); // Store visible items
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
@@ -74,15 +78,17 @@ export default function HorizontalListDisplayer({ title, list, onCardClick, onCa
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 16,
-    marginBottom: 16,
-  },
-  header: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    paddingLeft: 16,
-  },
-});
+const useThemedStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      marginTop: 16,
+      marginBottom: 16,
+    },
+    header: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginBottom: 16,
+      paddingLeft: 16,
+      color: theme.text,
+    },
+  });

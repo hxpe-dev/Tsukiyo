@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   Image,
-  ActivityIndicator,
   Dimensions,
   FlatList,
   ScrollView,
@@ -17,6 +16,9 @@ import { saveReadingProgress, saveChapterImagesLocally, getDownloadedChapter, is
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import RateLimitWarning from '../components/RateLimitWarning';
+import ProgressBar from '../components/ProgressBar';
+import { useTheme } from '../context/ThemeContext';
+import PageLoading from '../components/PageLoading';
 
 type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
@@ -27,6 +29,9 @@ const ReaderScreen = () => {
   const route = useRoute<ReaderScreenRouteProp>();
   const { mangaId, mangaTitle, mangaCover, chapterId, chapters, page, externalUrl } = route.params;
   const isExternal = !!externalUrl;
+
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
 
   const [activeChapterId, setActiveChapterId] = useState(chapterId);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -83,7 +88,6 @@ const ReaderScreen = () => {
       try {
         const nextUrls = await getChapterImages(nextChapter.id);
         await saveChapterImagesLocally(mangaId, mangaTitle, nextChapter.id, nextUrls);
-        // console.log('Next chapter preloaded');
       } catch (err) {
         if (err instanceof Error && err.message === 'RATE_LIMITED') {
           setRateLimited(true);
@@ -106,11 +110,9 @@ const ReaderScreen = () => {
         const downloaded = await getDownloadedChapter(mangaId, activeChapterId);
         if (downloaded) {
           urls = downloaded.images;
-          // console.log('Loaded images from local storage.');
         } else {
           const fetched = await getChapterImages(activeChapterId);
           urls = await saveChapterImagesLocally(mangaId, mangaTitle, activeChapterId, fetched);
-          // console.log('Downloaded and saved chapter locally.');
         }
 
         await detectWebtoon(urls);
@@ -263,6 +265,16 @@ const ReaderScreen = () => {
       }
     };
 
+    const dynamicStyles = {
+      image: {
+        width: screenWidth,
+        aspectRatio:
+          imageDimensions[item]?.width && imageDimensions[item]?.height
+            ? imageDimensions[item].width / imageDimensions[item].height
+            : 0.7, // fallback
+      },
+    };
+
     // Manga (horizontal paged with zoom)
     return (
       <ScrollView
@@ -272,7 +284,14 @@ const ReaderScreen = () => {
         contentContainerStyle={styles.scrollContent}
       >
         <TouchableOpacity activeOpacity={1} onPress={handleTap} style={styles.flex1}>
-          <Image source={{ uri: item }} style={styles.image} resizeMode="contain" fadeDuration={0} />
+          <View style={styles.centeredImageWrapper}>
+            <Image
+              source={{ uri: item }}
+              style={dynamicStyles.image}
+              resizeMode="contain"
+              fadeDuration={0}
+            />
+          </View>
         </TouchableOpacity>
       </ScrollView>
     );
@@ -301,9 +320,7 @@ const ReaderScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6200ee" />
-      </View>
+      <PageLoading/>
     );
   }
 
@@ -319,6 +336,9 @@ const ReaderScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <Text style={styles.mangaName}>
+          {mangaTitle}
+        </Text>
         <Text style={styles.chapterInfo}>
           Chapter {currentChapter?.attributes.chapter} — Page {currentPage + 1} / {imageUrls.length}
         </Text>
@@ -345,75 +365,94 @@ const ReaderScreen = () => {
         onEndReached={isWebtoon.current ? () => setShowNextChapterButton(true) : undefined}
         onEndReachedThreshold={0.9}
         // PERFORMANCE SETTINGS START
-        removeClippedSubviews={false} // important on Android
+        removeClippedSubviews={false}
         initialNumToRender={3}
         maxToRenderPerBatch={3}
         windowSize={3}
         updateCellsBatchingPeriod={5}
         // PERFORMANCE SETTINGS END
       />
+      {!isWebtoon.current && (
+        <ProgressBar
+          currentPage={currentPage}
+          totalPages={imageUrls.length}
+          onPressPage={(pageIndex) => {
+            setCurrentPage(pageIndex);
+            if (!isWebtoon.current) {
+              flatListRef.current?.scrollToIndex({ index: pageIndex, animated: readerAnimationsEnabled });
+            }
+          }}
+        />
+      )}
       {rateLimited && <RateLimitWarning />}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#111',
-  },
-  chapterInfo: {
-    fontSize: 18,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  zoomContainer: {
-    width: screenWidth,
-    height: screenHeight,
-    backgroundColor: '#000',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  image: {
-    width: screenWidth,
-    height: screenHeight,
-  },
-  nextChapterButtonWrapper: {
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  nextChapterButton: {
-    backgroundColor: '#6200ee',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  nextChapterButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  flex1: {
-    flex: 1,
-  },
-});
+const useThemedStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: theme.header,
+    },
+    mangaName: {
+      fontSize: 18,
+      color: theme.text,
+      fontWeight: 'bold',
+    },
+    chapterInfo: {
+      marginTop: 8,
+      fontSize: 18,
+      color: theme.text,
+      fontWeight: 'normal',
+    },
+    centeredImageWrapper: {
+      flex: 0.5,
+      justifyContent: 'center',
+    },
+    centered: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    errorText: {
+      color: theme.error,
+      fontSize: 16,
+      textAlign: 'center',
+      paddingHorizontal: 20,
+    },
+    zoomContainer: {
+      width: screenWidth,
+      height: screenHeight,
+      backgroundColor: theme.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+    nextChapterButtonWrapper: {
+      alignItems: 'center',
+      marginVertical: 20,
+    },
+    nextChapterButton: {
+      backgroundColor: theme.button,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+    },
+    nextChapterButtonText: {
+      color: theme.buttonText,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    flex1: {
+      flex: 1,
+    },
+  });
 
 export default ReaderScreen;

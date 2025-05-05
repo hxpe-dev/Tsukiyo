@@ -1,0 +1,35 @@
+export const lightTheme = {
+  background: '#FFFFFF',
+  elevatedBackground: '#F2F2F2',
+  navbar: '#FEFFFF',
+  text: '#000000',
+  textSecondary: '#555555',
+  header: '#6200EE',
+  button: '#6200EE',
+  bigButton: '#6200EE',
+  buttonSecondary: '#F2F2F2',
+  unselectedButton: '#F1F1F1',
+  buttonText: '#FFFFFF',
+  border: '#CCCCCC',
+  shadow: '#000000',
+  error: '#ff0000',
+  warning: '#d97706',
+};
+
+export const darkTheme = {
+  background: '#1e2021',
+  elevatedBackground: '#2a2d2c',
+  navbar: '#2a2d2c',
+  text: '#FFFFFF',
+  textSecondary: '#d0d0d0',
+  header: '#1e2021',
+  button: '#e5f766',
+  bigButton: '#e5f766',
+  buttonSecondary: '#2a2d2c',
+  unselectedButton: '#2a2d2c',
+  buttonText: '#000000',
+  border: '#575757',
+  shadow: '#2a2d2c', // Disabling shadow for the moment
+  error: '#ff0000',
+  warning: '#d97706',
+};

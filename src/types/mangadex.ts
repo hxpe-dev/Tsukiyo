@@ -30,23 +30,6 @@ export type Chapter = {
   relationships?: Relationship[];
 };
 
-export type ChapterImageResponse = {
-  baseUrl: string;
-  chapter: {
-    hash: string;
-    data: string[]; // filenames
-    dataSaver: string[];
-  };
-};
-
-export type CoverArt = {
-  id: string;
-  type: 'cover_art';
-  attributes: {
-    fileName: string;
-  };
-};
-
 export type Relationship = {
   id: string;
   type: 'cover_art' | 'author' | 'artist' | 'manga';
@@ -55,18 +38,6 @@ export type Relationship = {
     name?: string;
   };
 };
-
-// Optional category grouping
-export interface MangaEntry {
-  manga: Manga;
-  progress?: number;
-}
-
-export interface MangaCategory {
-  name: string;
-  entries: MangaEntry[];
-  isCustomList: boolean;
-}
 
 export interface MangaProgress {
   [mangaId: string]: MangaProgressEntry;

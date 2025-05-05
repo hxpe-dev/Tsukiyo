@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { MainStackParamList } from '../screens/MainLayout';
+import { useTheme } from '../context/ThemeContext';
 
 const screenWidth = Dimensions.get('window').width;
 const BUTTON_MARGIN_HORIZONTAL = 10;
@@ -16,6 +17,9 @@ const sliderWidth = 50;
 
 export default function Navbar() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
 
   // currentScreen works but is not used for the moment
   // const [currentScreen, setCurrentScreen] = useState<keyof MainStackParamList>('Home');
@@ -76,48 +80,49 @@ export default function Navbar() {
   );
 }
 
-const styles = StyleSheet.create({
-  navbar: {
-    position: 'absolute',
-    bottom: NAVBAR_SIDE_MARGIN,
-    left: NAVBAR_SIDE_MARGIN,
-    right: NAVBAR_SIDE_MARGIN,
-    height: 60,
-    backgroundColor: '#ffffff',
-    borderRadius: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 10,
-    overflow: 'hidden',
-  },
-  button: {
-    flex: 1,
-    height: '80%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 30,
-    marginHorizontal: BUTTON_MARGIN_HORIZONTAL,
-  },
-  text: {
-    fontSize: 14,
-    color: '#4b5563',
-  },
-  textCenter: {
-    fontSize: 14,
-    color: '#4b5563',
-    fontWeight: 'bold',
-  },
-  slider: {
-    position: 'absolute',
-    bottom: '15%',
-    width: sliderWidth,
-    backgroundColor: '#4f46e5',
-    borderRadius: 30,
-    height: 4,
-  },
-});
+const useThemedStyles = (theme: any) =>
+  StyleSheet.create({
+    navbar: {
+      position: 'absolute',
+      bottom: NAVBAR_SIDE_MARGIN,
+      left: NAVBAR_SIDE_MARGIN,
+      right: NAVBAR_SIDE_MARGIN,
+      height: 60,
+      backgroundColor: theme.navbar,
+      borderRadius: 30,
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 10,
+      overflow: 'hidden',
+    },
+    button: {
+      flex: 1,
+      height: '80%',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 30,
+      marginHorizontal: BUTTON_MARGIN_HORIZONTAL,
+    },
+    text: {
+      fontSize: 14,
+      color: theme.text,
+    },
+    textCenter: {
+      fontSize: 14,
+      color: theme.text,
+      fontWeight: 'bold',
+    },
+    slider: {
+      position: 'absolute',
+      bottom: '15%',
+      width: sliderWidth,
+      backgroundColor: theme.button,
+      borderRadius: 30,
+      height: 4,
+    },
+  });

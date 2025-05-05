@@ -57,7 +57,6 @@ export const fetchFromApi = async (endpoint: string, params?: Record<string, any
   return response.json();
 };
 
-// 🔍 Search manga by title
 export const searchManga = async (title: string, limit = 10) => {
   const data = await fetchFromApi(
     '/manga',
@@ -96,7 +95,6 @@ export const searchManga = async (title: string, limit = 10) => {
   return enrichedMangaList;
 };
 
-// 📖 Get chapters for a specific manga
 export const getMangaChapters = async (mangaId: string, language: string, page: number = 1, limit: number = 100) => {
   const data = await fetchFromApi(`/manga/${mangaId}/feed`, {
     translatedLanguage: [language], // Empty array means all available languages
@@ -108,7 +106,6 @@ export const getMangaChapters = async (mangaId: string, language: string, page: 
   return data.data; // Array of chapter entries in all languages
 };
 
-// 🖼️ Get page image URLs for a chapter
 export const getChapterImages = async (chapterId: string) => {
   const data = await fetchFromApi(`/at-home/server/${chapterId}`);
 
@@ -139,7 +136,6 @@ export const fetchCoverFileName = async (coverId: string): Promise<string | null
   }
 };
 
-// 📘 Get full manga by ID (including coverFileName)
 export const getMangaById = async (mangaId: string) => {
   const data = await fetchFromApi(`/manga/${mangaId}`, {
     includes: ['cover_art'],

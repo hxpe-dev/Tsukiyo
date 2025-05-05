@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { MangaProgressItem } from '../types/mangadex';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   visible: boolean;
@@ -26,6 +27,9 @@ const MangaOptionsModal = ({
   onInfo,
   onRemove,
 }: Props) => {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   return (
     <Modal
       animationType="slide"
@@ -69,44 +73,47 @@ const MangaOptionsModal = ({
 
 export default MangaOptionsModal;
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    justifyContent: 'flex-start',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  button: {
-    backgroundColor: '#f2f2f2',
-    padding: 14,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  buttonText: {
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  removeText: {
-    color: 'white',
-  },
-  removeButton: {
-    backgroundColor: '#e53935',
-  },
-  cancelText: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#666',
-    marginTop: 12,
-  },
-});
+const useThemedStyles = (theme: any) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    sheet: {
+      backgroundColor: theme.background,
+      padding: 20,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      justifyContent: 'flex-start',
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 16,
+      color: theme.text,
+    },
+    button: {
+      backgroundColor: theme.buttonSecondary,
+      padding: 14,
+      borderRadius: 8,
+      marginBottom: 8,
+    },
+    buttonText: {
+      fontSize: 16,
+      textAlign: 'center',
+      color: theme.text,
+    },
+    removeText: {
+      color: theme.buttonText,
+    },
+    removeButton: {
+      backgroundColor: theme.error,
+    },
+    cancelText: {
+      fontSize: 16,
+      textAlign: 'center',
+      color: theme.textSecondary,
+      marginTop: 12,
+    },
+  });
