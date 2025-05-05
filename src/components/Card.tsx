@@ -64,7 +64,7 @@ const Card: React.FC<CardProps> = ({
   const chapterInfo = !isManga(item)
     ? item.externalUrl
       ? `Ch. ${item.chapterNum} (external)`
-      : `Ch. ${item.chapterNum} • Pg. ${item.page + 1}`
+      : `Ch. ${item.chapterNum} • Pg. ${item.page as unknown as number + 1}`
     : null;
 
   const dynamicStyles = {
@@ -102,11 +102,11 @@ const Card: React.FC<CardProps> = ({
         ]}
       >
         <Image
-          source={{ uri: cover }}
+          source={{ uri: cover as string }}
           style={dynamicStyles.image}
         />
         <Text numberOfLines={1} style={dynamicStyles.title}>
-          {title}
+          {title as string}
         </Text>
         {chapterInfo && (
           <Text style={styles.chapterInfo} numberOfLines={1}>

@@ -92,3 +92,17 @@ export interface MangaDownloadEntry {
 export interface MangaDownloads {
   [mangaId: string]: MangaDownloadEntry;
 }
+
+export interface MangaProgressItem {
+  id: string;
+  title: string;
+  cover: string;
+  chapterId: string;
+  chapterNum: string;
+  chapters: Chapter[];
+  page: number;
+  externalUrl?: string | null;
+  lastRead?: string;
+}
+
+export type DisplayableManga = Manga | MangaProgressItem;

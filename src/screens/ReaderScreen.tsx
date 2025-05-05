@@ -69,7 +69,7 @@ const ReaderScreen = () => {
     if (isExternal) {return;}
 
     const preloadNextChapterImages = async () => {
-      if (isApiRateLimited === true) {
+      if (isApiRateLimited()) {
         setRateLimited(true);
         return;
       }
@@ -85,7 +85,7 @@ const ReaderScreen = () => {
         await saveChapterImagesLocally(mangaId, mangaTitle, nextChapter.id, nextUrls);
         // console.log('Next chapter preloaded');
       } catch (err) {
-        if (err.message === 'RATE_LIMITED') {
+        if (err instanceof Error && err.message === 'RATE_LIMITED') {
           setRateLimited(true);
         }
         console.warn('Failed to preload next chapter', err);
@@ -93,7 +93,7 @@ const ReaderScreen = () => {
     };
 
     const loadImages = async () => {
-      if (isApiRateLimited === true) {
+      if (isApiRateLimited()) {
         setRateLimited(true);
         return;
       }
@@ -128,7 +128,7 @@ const ReaderScreen = () => {
 
         preloadNextChapterImages();
       } catch (err) {
-        if (err.message === 'RATE_LIMITED') {
+        if (err instanceof Error && err.message === 'RATE_LIMITED') {
           setRateLimited(true);
         } else {
           console.error(err);
@@ -169,7 +169,7 @@ const ReaderScreen = () => {
   };
 
   const goToPreviousChapter = async () => {
-    if (isApiRateLimited === true) {
+    if (isApiRateLimited()) {
       setRateLimited(true);
       return;
     }
@@ -184,7 +184,7 @@ const ReaderScreen = () => {
         setActiveChapterId(previousChapter.id);
         setCurrentPage(urls.length - 1);
       } catch (err) {
-        if (err.message === 'RATE_LIMITED') {
+        if (err instanceof Error && err.message === 'RATE_LIMITED') {
           setRateLimited(true);
         } else {
           console.error('Failed to load previous chapter', err);

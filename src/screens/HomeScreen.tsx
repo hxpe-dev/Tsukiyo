@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import HorizontalListDisplayer from '../components/HorizontalListDisplayer';
-import { Manga, MangaProgress } from '../types/mangadex';
+import { DisplayableManga, Manga, MangaProgressItem } from '../types/mangadex';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
   // loadMangaListFromStorage,
@@ -24,17 +24,17 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
   // const [planningList, setPlanningList] = useState<Manga[]>([]);
-  const [currentlyReadingList, setCurrentlyReadingList] = useState<MangaProgress[]>([]);
+  const [currentlyReadingList, setCurrentlyReadingList] = useState<MangaProgressItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedManga, setSelectedManga] = useState<MangaProgress | null>(null);
+  const [selectedManga, setSelectedManga] = useState<MangaProgressItem | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
     try {
       // const planningMangas: Manga[] = await loadMangaListFromStorage();
-      const readingMangas: MangaProgress[] = await getAllReadingProgress();
+      const readingMangas: MangaProgressItem[] = await getAllReadingProgress();
 
       // setPlanningList(planningMangas);
       setCurrentlyReadingList(readingMangas);
@@ -57,17 +57,21 @@ export default function HomeScreen() {
     loadData();
   };
 
-  const handleNavigateToReader = (item: MangaProgress) => {
-    navigation.navigate('Reader', { mangaId: item.id, mangaTitle: item.title, mangaCover: item.cover, chapterId: item.chapterId, chapters: item.chapters, page: item.page, externalUrl: item.externalUrl });
+  const handleNavigateToReader = (item: DisplayableManga) => {
+    if ('chapterId' in item) {
+      navigation.navigate('Reader', { mangaId: item.id, mangaTitle: item.title, mangaCover: item.cover, chapterId: item.chapterId, chapters: item.chapters, page: item.page, externalUrl: item.externalUrl });
+    }
   };
 
-  const handleNavigateToInfo = (item: Manga | MangaProgress) => {
+  const handleNavigateToInfo = (item: Manga | MangaProgressItem) => {
     navigation.navigate('Info', { item });
   };
 
-  const handleCardLongPress = (item: MangaProgress) => {
-    setSelectedManga(item);
-    setIsModalVisible(true);
+  const handleCardLongPress = (item: DisplayableManga) => {
+    if ('chapterId' in item) {
+      setSelectedManga(item);
+      setIsModalVisible(true);
+    }
   };
 
   const handleContinueReading = () => {

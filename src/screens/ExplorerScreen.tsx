@@ -15,7 +15,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import HorizontalListDisplayer from '../components/HorizontalListDisplayer';
 import Card from '../components/Card';
-import { Manga } from '../types/mangadex';
+import { DisplayableManga, Manga } from '../types/mangadex';
 import { getLatestManga, searchManga, isApiRateLimited } from '../api/mangadex';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -55,7 +55,7 @@ export default function ExplorerScreen() {
   }, []);
 
   const loadLatestManga = async () => {
-    if (isApiRateLimited === true) {
+    if (isApiRateLimited()) {
       setRateLimited(true);
       return;
     }
@@ -64,7 +64,7 @@ export default function ExplorerScreen() {
       const mangaData = await getLatestManga(15);
       setLatestManga(mangaData);
     } catch (error) {
-      if (error.message === 'RATE_LIMITED') {
+      if (error instanceof Error && error.message === 'RATE_LIMITED') {
         setRateLimited(true);
       } else {
         console.error('Failed to fetch latest manga', error);
@@ -85,7 +85,7 @@ export default function ExplorerScreen() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {return;}
-    if (isApiRateLimited === true) {
+    if (isApiRateLimited()) {
       setRateLimited(true);
       return;
     }
@@ -95,7 +95,7 @@ export default function ExplorerScreen() {
       const results = await searchManga(searchQuery.trim(), 30);
       setSearchResults(results);
     } catch (error) {
-      if (error.message === 'RATE_LIMITED') {
+      if (error instanceof Error && error.message === 'RATE_LIMITED') {
         setRateLimited(true);
       } else {
         console.error('Search error:', error);
@@ -105,8 +105,10 @@ export default function ExplorerScreen() {
     }
   };
 
-  const handleNavigateToInfo = useCallback((item: Manga) => {
-    navigation.navigate('Info', { item });
+  const handleNavigateToInfo = useCallback((item: DisplayableManga) => {
+    if ('attributes' in item) {
+      navigation.navigate('Info', { item });
+    }
   }, [navigation]);
 
   const handleCancelSearch = () => {

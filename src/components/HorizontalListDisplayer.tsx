@@ -1,10 +1,8 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { Manga, MangaProgress } from '../types/mangadex';
+import { DisplayableManga } from '../types/mangadex';
 import Card from './Card';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-type DisplayableManga = Manga | MangaProgress;
 
 interface Props {
   title: string;

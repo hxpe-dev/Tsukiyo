@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MangaProgress, MangaDownloads, Chapter, MangaProgressEntry } from '../types/mangadex';
+import { MangaProgress, MangaDownloads, Chapter, MangaProgressEntry, MangaProgressItem } from '../types/mangadex';
 import RNFS from 'react-native-fs';
 
 // const MANGA_PLANNING_KEY = '@manga_planning'; // Static key for manga list
@@ -70,14 +70,14 @@ export const getReadingProgress = async (
   }
 };
 
-export const getAllReadingProgress = async (): Promise<MangaProgress[]> => {
+export const getAllReadingProgress = async (): Promise<MangaProgressItem[]> => {
   try {
     const jsonValue = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
     if (!jsonValue) {return [];}
 
     const progress = JSON.parse(jsonValue); // { mangaId: { mangaTitle, mangaCover, chapterId, page }, ... }
 
-    const mangaList: MangaProgress[] = Object.entries(progress).map(([id, entry]: any) => ({
+    const mangaList: MangaProgressItem[] = Object.entries(progress).map(([id, entry]: any) => ({
       id,
       title: entry.mangaTitle,
       cover: entry.mangaCover,
