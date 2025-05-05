@@ -192,7 +192,7 @@ const InfoScreen = () => {
       <Text style={styles.title}>{manga.attributes.title.en || 'No title'}</Text>
       <Text style={styles.label}>Status: {manga.attributes.status || 'Unknown'}</Text>
       <Text style={styles.label}>Year: {manga.attributes.year || 'N/A'}</Text>
-      <Text style={styles.label}>Rating: {manga.attributes.contentRating || 'N/A'}</Text>
+      <Text style={styles.label}>Content Rating: {manga.attributes.contentRating || 'N/A'}</Text>
       <Text style={styles.description}>
         {manga.attributes.description.en || 'No description available.'}
       </Text>

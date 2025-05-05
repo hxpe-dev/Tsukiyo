@@ -94,16 +94,15 @@ export default function ProfileScreen() {
       <View key={mangaId} style={styles.mangaContainer}>
         <View style={styles.mangaRow}>
           <TouchableOpacity onPress={() => toggleExpand(mangaId)} style={styles.flexRow}>
-            <Text style={styles.mangaTitle}>
+            <Text style={styles.mangaTitle} numberOfLines={1} ellipsizeMode="tail">
               {mangaTitle}
               {sizes[mangaId] !== undefined && (
-                <Text style={styles.fileSize}>  • {formatBytes(sizes[mangaId])}</Text>
+                <Text style={styles.fileSize}> • {formatBytes(sizes[mangaId])}</Text>
               )}
             </Text>
             <Icon
               name={expanded.has(mangaId) ? 'chevron-up' : 'chevron-down'}
               size={18}
-              color="#4f46e5"
               style={styles.chevronIcon}
             />
           </TouchableOpacity>
@@ -116,7 +115,7 @@ export default function ProfileScreen() {
           Object.entries(chapters).map(([chapterId, chapterImages]) => {
             if (chapterId === 'title') {return null;}
 
-            const images = chapterImages as string[]; // 👈 Narrow the type
+            const images = chapterImages as string[];
 
             return (
               <View key={chapterId} style={styles.chapterRow}>
@@ -197,6 +196,9 @@ const useThemedStyles = (theme: any) =>
       alignItems: 'center',
     },
     mangaTitle: {
+      width: '86%',
+      marginRight: 5,
+      overflow: 'hidden',
       fontWeight: 'bold',
       fontSize: 16,
       color: theme.text,

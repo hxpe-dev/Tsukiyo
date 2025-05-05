@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   View,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import { MangaProgressItem } from '../types/mangadex';
 import { useTheme } from '../context/ThemeContext';
@@ -30,9 +31,42 @@ const MangaOptionsModal = ({
   const { theme } = useTheme();
   const styles = useThemedStyles(theme);
 
+  const [slideAnim] = useState(new Animated.Value(100)); // Initial position off-screen
+  const [opacityAnim] = useState(new Animated.Value(0)); // Initially hidden
+
+  useEffect(() => {
+    if (visible) {
+      // Animate to visible state
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 200, // Fade in the content
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      // Animate back to off-screen and fade out
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 200, // Fade out the content
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [opacityAnim, slideAnim, visible]);
+
   return (
     <Modal
-      animationType="slide"
+      animationType="none" // No animation for the overlay
       transparent
       visible={visible}
       onRequestClose={onClose}
@@ -40,7 +74,15 @@ const MangaOptionsModal = ({
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback onPress={() => {}}>
-            <View style={styles.sheet}>
+            <Animated.View
+              style={[
+                styles.sheet,
+                {
+                  transform: [{ translateY: slideAnim }], // Apply slide animation to the content
+                  opacity: opacityAnim, // Apply fade-in/fade-out effect
+                },
+              ]}
+            >
               <Text style={styles.title}>{manga?.title}</Text>
 
               <TouchableOpacity style={styles.button} onPress={onContinue}>
@@ -63,7 +105,7 @@ const MangaOptionsModal = ({
               <TouchableOpacity onPress={onClose}>
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
@@ -78,7 +120,7 @@ const useThemedStyles = (theme: any) =>
     overlay: {
       flex: 1,
       justifyContent: 'flex-end',
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: 'rgba(0,0,0,0.5)', // The overlay stays fixed
     },
     sheet: {
       backgroundColor: theme.background,

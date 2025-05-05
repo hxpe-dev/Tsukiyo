@@ -63,6 +63,7 @@ export const searchManga = async (title: string, limit = 10) => {
     {
       title,
       limit,
+      order: { relevance: 'desc' },
       includes: ['cover_art'],
     },
     `?_=${Date.now()}`

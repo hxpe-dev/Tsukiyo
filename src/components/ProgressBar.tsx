@@ -34,7 +34,7 @@ const ProgressBar = ({
             style={[
               styles.progressBlock,
               {
-                backgroundColor: index <= currentPage ? theme.button : theme.textSecondary,
+                backgroundColor: index <= currentPage ? theme.textSecondary : theme.elevatedBackground,
               },
             ]}
           />
