@@ -17,6 +17,8 @@ import {
   getAllDownloads,
   deleteDownloadedChapter,
   deleteDownloadedManga,
+  getMangaFolderSize,
+  formatBytes,
 } from '../utils/storage'; // Adjust path based on your project structure
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -25,6 +27,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [downloads, setDownloads] = useState<MangaDownloads>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [sizes, setSizes] = useState<{ [mangaId: string]: number }>({});
 
   useEffect(() => {
     loadDownloads();
@@ -33,6 +36,21 @@ export default function ProfileScreen() {
   const loadDownloads = async () => {
     const data = await getAllDownloads();
     setDownloads(data);
+
+    // Calculate sizes for each manga
+    const sizeMap: { [mangaId: string]: number } = {};
+    await Promise.all(
+      Object.keys(data).map(async (mangaId) => {
+        try {
+          const size = await getMangaFolderSize(mangaId);
+          sizeMap[mangaId] = size;
+        } catch (err) {
+          console.warn(`Error getting size for ${mangaId}:`, err);
+          sizeMap[mangaId] = 0;
+        }
+      })
+    );
+    setSizes(sizeMap);
   };
 
   const toggleExpand = (mangaId: string) => {
@@ -64,19 +82,24 @@ export default function ProfileScreen() {
 
   const renderMangaItem = (mangaId: string) => {
     const manga = downloads[mangaId]; // Get the entire manga data
-    const mangaTitle = manga?.title || "Unknown Manga"; // Fallback if title is missing
+    const mangaTitle = manga?.title || 'Unknown Manga'; // Fallback if title is missing
     const chapters = manga ? manga : {};  // Ensure chapters are properly fetched
 
     return (
       <View key={mangaId} style={styles.mangaContainer}>
         <View style={styles.mangaRow}>
           <TouchableOpacity onPress={() => toggleExpand(mangaId)} style={styles.flexRow}>
-            <Text style={styles.mangaTitle}>{mangaTitle}</Text>
+            <Text style={styles.mangaTitle}>
+              {mangaTitle}
+              {sizes[mangaId] !== undefined && (
+                <Text style={styles.fileSize}>  • {formatBytes(sizes[mangaId])}</Text>
+              )}
+            </Text>
             <Icon
               name={expanded.has(mangaId) ? 'chevron-up' : 'chevron-down'}
               size={18}
               color="#4f46e5"
-              style={{ marginLeft: 8 }}
+              style={styles.chevronIcon}
             />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => confirmDeleteManga(mangaId)}>
@@ -85,18 +108,22 @@ export default function ProfileScreen() {
         </View>
 
         {expanded.has(mangaId) &&
-          Object.entries(chapters).map(([chapterId, chapterImages]) => (
-            chapterId !== 'title' && (
+          Object.entries(chapters).map(([chapterId, chapterImages]) => {
+            if (chapterId === 'title') {return null;}
+
+            const images = chapterImages as string[]; // 👈 Narrow the type
+
+            return (
               <View key={chapterId} style={styles.chapterRow}>
                 <Text style={styles.chapterText}>
-                  {chapterId.slice(0, 5)}... ({chapterImages.length} images)
+                  {chapterId.slice(0, 5)}... ({images.length} images)
                 </Text>
                 <TouchableOpacity onPress={() => handleDeleteChapter(mangaId, chapterId)}>
                   <Icon name="trash" size={16} color="red" />
                 </TouchableOpacity>
               </View>
-            )
-          ))}
+            );
+          })}
       </View>
     );
   };
@@ -164,6 +191,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  fileSize: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   chapterRow: {
     marginTop: 10,
     flexDirection: 'row',
@@ -173,5 +204,8 @@ const styles = StyleSheet.create({
   chapterText: {
     fontSize: 14,
     color: '#555',
+  },
+  chevronIcon: {
+    marginLeft: 8,
   },
 });

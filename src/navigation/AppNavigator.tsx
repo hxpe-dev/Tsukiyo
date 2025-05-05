@@ -6,11 +6,12 @@ import ReaderScreen from '../screens/ReaderScreen';
 import { MainStackParamList } from '../screens/MainLayout';
 import MainLayout from '../screens/MainLayout';
 import { Chapter, Manga } from '../types/mangadex';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export type RootStackParamList = {
   Main: { screen?: keyof MainStackParamList };
   Settings: undefined;
-  Info: { item: Manga };
+  Info: { item: Manga | { id: string } };
   Reader: { mangaId: string, mangaTitle: string, mangaCover: string, chapterId: string, chapters: Chapter[], page: number, externalUrl?: string | null };
 };
 
@@ -19,12 +20,15 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const AppNavigator = () => {
   // All screens where navbar doesn't appear
   return (
-    <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Main" component={MainLayout} />
-      <Stack.Screen name="Settings" component={SettingsScreen} options={{presentation: 'modal'}}/>
-      <Stack.Screen name="Info" component={InfoScreen} options={{presentation: 'modal'}}/>
-      <Stack.Screen name="Reader" component={ReaderScreen} options={{presentation: 'modal'}}/>
-    </Stack.Navigator>
+    // eslint-disable-next-line react-native/no-inline-styles
+    <SafeAreaView style={{flex: 1, backgroundColor: 'transparent'}} edges={['top', 'bottom', 'left', 'right']}>
+      <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Main" component={MainLayout} />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{presentation: 'modal'}}/>
+        <Stack.Screen name="Info" component={InfoScreen} options={{presentation: 'modal'}}/>
+        <Stack.Screen name="Reader" component={ReaderScreen} options={{presentation: 'modal'}}/>
+      </Stack.Navigator>
+    </SafeAreaView>
   );
 };
 

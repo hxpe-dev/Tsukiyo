@@ -7,11 +7,11 @@ import {
   TouchableWithoutFeedback,
   StyleSheet,
 } from 'react-native';
-import { MangaProgress } from '../types/mangadex';
+import { MangaProgressEntryExtended } from '../types/mangadex';
 
 type Props = {
   visible: boolean;
-  manga: MangaProgress | null;
+  manga: MangaProgressEntryExtended | null;
   onClose: () => void;
   onContinue: () => void;
   onInfo: () => void;

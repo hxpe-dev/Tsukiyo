@@ -2,13 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Text, Image, StyleSheet, TouchableOpacity, FlatList, View, ScrollView } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { getMangaById, getMangaChapters } from '../api/mangadex';
-import { Chapter, Manga } from '../types/mangadex';
+import { getMangaById, getMangaChapters, isApiRateLimited } from '../api/mangadex';
+import { Chapter, Manga, MangaProgressEntry } from '../types/mangadex';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { isChapterDownloaded, getReadingProgress } from '../utils/storage';
 import Icon from 'react-native-vector-icons/Feather';
 import RateLimitWarning from '../components/RateLimitWarning';
-import { isApiRateLimited } from '../api/mangadex';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InfoScreenRouteProp = RouteProp<RootStackParamList, 'Info'>;
@@ -16,7 +15,7 @@ type InfoScreenRouteProp = RouteProp<RootStackParamList, 'Info'>;
 const InfoScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<InfoScreenRouteProp>();
-  const { item } = route.params;
+  const item = route.params.item;
 
   const [manga, setManga] = useState<Manga | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -26,7 +25,7 @@ const InfoScreen = () => {
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedUrl, setSelectedUrl] = useState<string | null>('all');
-  const [readingProgress, setReadingProgress] = useState<boolean>(false);
+  const [readingProgress, setReadingProgress] = useState<MangaProgressEntry | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMoreChapters, setHasMoreChapters] = useState<boolean>(true);
   const [downloadedChapterIds, setDownloadedChapterIds] = useState<Set<string>>(new Set());
@@ -36,7 +35,7 @@ const InfoScreen = () => {
 
   useEffect(() => {
     const resolveManga = async () => {
-      if (isApiRateLimited === true) {
+      if (isApiRateLimited()) {
         setRateLimited(true);
         return;
       }
@@ -47,7 +46,7 @@ const InfoScreen = () => {
           const fullManga = await getMangaById(item.id);
           setManga(fullManga);
         } catch (error) {
-          if (error.message === 'RATE_LIMITED') {
+          if (error instanceof Error && error.message === 'RATE_LIMITED') {
             setRateLimited(true);
           } else {
             console.error('Failed to fetch full manga:', error);
@@ -82,7 +81,7 @@ const InfoScreen = () => {
   useEffect(() => {
     const fetchChapters = async () => {
       if (!manga || !hasMoreChapters || loading) {return;}
-      if (isApiRateLimited === true) {
+      if (isApiRateLimited()) {
         setRateLimited(true);
         return;
       }
@@ -120,7 +119,7 @@ const InfoScreen = () => {
           }
         }
       } catch (error) {
-        if (error.message === 'RATE_LIMITED') {
+        if (error instanceof Error && error.message === 'RATE_LIMITED') {
           setRateLimited(true);
         } else {
           console.error('Failed to fetch chapters:', error);
@@ -138,7 +137,7 @@ const InfoScreen = () => {
       navigation.navigate('Reader', {
         mangaId: manga.id,
         mangaTitle: manga.attributes.title.en || 'No title',
-        mangaCover: imageUrl,
+        mangaCover: imageUrl || '',
         chapterId,
         chapters: selectedUrl === 'all' ? chapters : selectedUrl === 'mangadex' ? mangadexChapters : externalChapters,
         page: 0,
@@ -268,7 +267,7 @@ const InfoScreen = () => {
         }}
       >
         <Text style={styles.startButtonText}>
-          {readingProgress?.chapterId ? 'Continue Reading' : 'Start Reading'}
+          {readingProgress ? 'Continue Reading' : 'Start Reading'}
         </Text>
       </TouchableOpacity>
       <Text style={styles.sectionHeader}>Chapters</Text>

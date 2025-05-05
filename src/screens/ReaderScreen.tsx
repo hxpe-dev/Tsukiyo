@@ -105,7 +105,7 @@ const ReaderScreen = () => {
 
         const downloaded = await getDownloadedChapter(mangaId, activeChapterId);
         if (downloaded) {
-          urls = downloaded;
+          urls = downloaded.images;
           // console.log('Loaded images from local storage.');
         } else {
           const fetched = await getChapterImages(activeChapterId);

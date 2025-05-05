@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import HorizontalListDisplayer from '../components/HorizontalListDisplayer';
-import { MangaProgress } from '../types/mangadex';
+import { Manga, MangaProgress } from '../types/mangadex';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
   // loadMangaListFromStorage,
@@ -16,6 +16,8 @@ import {
   removeReadingProgress,
 } from '../utils/storage';
 import MangaOptionsModal from '../components/MangaOptionsModal';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 

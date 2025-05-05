@@ -7,6 +7,7 @@ export type Manga = {
     description: Record<string, string>;
     status: 'ongoing' | 'completed' | 'hiatus' | 'cancelled';
     lastChapter: string | null;
+    availableTranslatedLanguages: string[];
     year?: number;
     contentRating?: 'safe' | 'suggestive' | 'erotica' | 'pornographic';
     tags?: any[];
@@ -23,7 +24,8 @@ export type Chapter = {
     pages: number;
     translatedLanguage: string;
     publishAt: string;
-    language: string
+    language: string;
+    externalUrl?: string | null;
   };
   relationships?: Relationship[];
 };
@@ -66,21 +68,27 @@ export interface MangaCategory {
   isCustomList: boolean;
 }
 
-export type MangaProgress = {
-  id: string;
-  title: string;
-  cover: string;
+export interface MangaProgress {
+  [mangaId: string]: MangaProgressEntry;
+}
+
+export interface MangaProgressEntry {
+  mangaTitle: string;
+  mangaCover: string;
   chapterId: string;
   chapterNum: string;
   chapters: Chapter[];
   page: number;
-  externalUrl: string | null;
+  externalUrl?: string | null;
   lastRead?: string;
-};
+}
 
-export type MangaDownloads = {
-  [mangaId: string]: {
-    title: string;  // Added manga title
-    [chapterId: string]: string[]; // Array of local file paths
-  };
-};
+export interface MangaDownloadEntry {
+  title: string;
+  [chapterId: string]: string[] | string; // string[] for chapter images, string for 'title'
+}
+
+// All downloads
+export interface MangaDownloads {
+  [mangaId: string]: MangaDownloadEntry;
+}
