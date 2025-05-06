@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './HomeScreen';
 import ExplorerScreen from './ExplorerScreen';
 import ProfileScreen from './ProfileScreen';
+import { useTheme } from '../context/ThemeContext';
 
 export type MainStackParamList = {
   Home: undefined;
@@ -15,6 +16,9 @@ export type MainStackParamList = {
 const MainStack = createNativeStackNavigator<MainStackParamList>();
 
 export default function MainLayout() {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   // All screens where navbar appears
   return (
     <View style={styles.container}>
@@ -33,11 +37,14 @@ export default function MainLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-  },
-});
+const useThemedStyles = (theme: any) =>
+   StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    content: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+  });

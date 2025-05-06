@@ -29,7 +29,7 @@ export const darkTheme = {
   unselectedButton: '#2a2d2c',
   buttonText: '#000000',
   border: '#575757',
-  shadow: '#2a2d2c', // Disabling shadow for the moment
+  shadow: '#1e2021',
   error: '#ff0000',
   warning: '#d97706',
 };

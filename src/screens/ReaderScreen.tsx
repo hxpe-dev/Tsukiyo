@@ -24,6 +24,10 @@ type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
+const headerHeight = 90;
+const progressHeight = 5;
+const securityValue = 1; // margin top of the image container and security value in reader height too
+const readerHeight = screenHeight - headerHeight - progressHeight - (2 * securityValue); // we do 2 times securityValue, to remove the marginTop and the value at the bottom.
 
 const ReaderScreen = () => {
   const route = useRoute<ReaderScreenRouteProp>();
@@ -268,12 +272,27 @@ const ReaderScreen = () => {
     const dynamicStyles = {
       image: {
         width: screenWidth,
-        aspectRatio:
-          imageDimensions[item]?.width && imageDimensions[item]?.height
-            ? imageDimensions[item].width / imageDimensions[item].height
-            : 0.7, // fallback
+        height: readerHeight,
+        // aspectRatio:
+        //   imageDimensions[item]?.width && imageDimensions[item]?.height
+        //     ? imageDimensions[item].width / imageDimensions[item].height
+        //     : 0.7, // fallback
       },
     };
+
+    // const dimensions = imageDimensions[item];
+
+    // let imageStyle = {
+    //   width: screenWidth,
+    //   height: readerHeight,
+    // };
+
+    // if (dimensions.height > readerHeight) {
+    //   imageStyle = {
+    //     height: readerHeigh
+    //   }
+    // }
+
 
     // Manga (horizontal paged with zoom)
     return (
@@ -374,6 +393,7 @@ const ReaderScreen = () => {
       />
       {!isWebtoon.current && (
         <ProgressBar
+          height={progressHeight}
           currentPage={currentPage}
           totalPages={imageUrls.length}
           onPressPage={(pageIndex) => {
@@ -396,6 +416,7 @@ const useThemedStyles = (theme: any) =>
       backgroundColor: theme.background,
     },
     header: {
+      height: headerHeight,
       paddingHorizontal: 16,
       paddingVertical: 16,
       backgroundColor: theme.header,
@@ -412,8 +433,8 @@ const useThemedStyles = (theme: any) =>
       fontWeight: 'normal',
     },
     centeredImageWrapper: {
-      flex: 0.5,
-      justifyContent: 'center',
+      marginTop: securityValue,
+      height: readerHeight,
     },
     centered: {
       flex: 1,

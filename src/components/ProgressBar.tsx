@@ -5,10 +5,12 @@ import { useTheme } from '../context/ThemeContext';
 const screenWidth = Dimensions.get('window').width;
 
 const ProgressBar = ({
+  height,
   currentPage,
   totalPages,
   onPressPage,
 }: {
+  height: number;
   currentPage: number;
   totalPages: number;
   onPressPage: (pageIndex: number) => void;
@@ -22,7 +24,7 @@ const ProgressBar = ({
   const blockWidth = barWidth / totalPages;
 
   return (
-    <View style={styles.progressBarContainer}>
+    <View style={[styles.progressBarContainer, { height }]}>
       {Array.from({ length: totalPages }).map((_, index) => (
         <TouchableOpacity
           key={index}
@@ -50,7 +52,6 @@ const useThemedStyles = (theme: any) =>
   StyleSheet.create({
     progressBarContainer: {
       flexDirection: 'row',
-      height: 5,
       backgroundColor: theme.background,
     },
 
