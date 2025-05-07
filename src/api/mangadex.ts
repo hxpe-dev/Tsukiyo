@@ -57,13 +57,14 @@ export const fetchFromApi = async (endpoint: string, params?: Record<string, any
   return response.json();
 };
 
-export const searchManga = async (title: string, limit = 10) => {
+export const searchManga = async (title: string, limit = 10, plusEighteen = true) => {
   const data = await fetchFromApi(
     '/manga',
     {
       title,
       limit,
       order: { relevance: 'desc' },
+      contentRating: plusEighteen ? [] : ['safe', 'suggestive'],
       includes: ['cover_art'],
     },
     `?_=${Date.now()}`
@@ -118,9 +119,9 @@ export const getChapterImages = async (chapterId: string) => {
   return imageUrls;
 };
 
-export const getLatestManga = async (limit: number = 10) => {
+export const getLatestManga = async (limit: number = 10, plusEighteen = true) => {
   try {
-    return searchManga('', limit);
+    return searchManga('', limit, plusEighteen);
   } catch (error) {
     console.error('Error fetching latest manga', error);
     return [];

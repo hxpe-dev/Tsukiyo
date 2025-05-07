@@ -41,12 +41,17 @@ export default function ExplorerScreen() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] = useState(true);
+  const [plusEighteenEnabled, setPlusEighteenEnabled] = useState(true);
   const [hasSearched, setHasSearched] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem('vertical_card_animations').then((val) => {
       if (val !== null) {setVerticalCardAnimationsEnabled(val === 'true');}
+    });
+    AsyncStorage.getItem('plus_eighteen').then((val) => {
+      if (val !== null) {setPlusEighteenEnabled(val === 'true');}
+      loadLatestManga(val ? val === 'true' : undefined);
     });
   }, []);
 
@@ -56,18 +61,14 @@ export default function ExplorerScreen() {
   const [viewableItems, setViewableItems] = useState<ViewToken[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
-  useEffect(() => {
-    loadLatestManga();
-  }, []);
-
-  const loadLatestManga = async () => {
+  const loadLatestManga = async (plusEighteen: boolean = true) => {
     if (isApiRateLimited()) {
       setRateLimited(true);
       return;
     }
     setLoading(true);
     try {
-      const mangaData = await getLatestManga(15);
+      const mangaData = await getLatestManga(15, plusEighteen);
       setLatestManga(mangaData);
     } catch (error) {
       if (error instanceof Error && error.message === 'RATE_LIMITED') {
@@ -86,7 +87,7 @@ export default function ExplorerScreen() {
     setSearchResults([]);
     setSearchQuery('');
     setHasSearched(false);
-    loadLatestManga();
+    loadLatestManga(plusEighteenEnabled);
   };
 
   const handleSearch = async () => {
@@ -98,7 +99,7 @@ export default function ExplorerScreen() {
     setHasSearched(true);
     setIsSearching(true);
     try {
-      const results = await searchManga(searchQuery.trim(), 30);
+      const results = await searchManga(searchQuery.trim(), 30, plusEighteenEnabled);
       setSearchResults(results);
     } catch (error) {
       if (error instanceof Error && error.message === 'RATE_LIMITED') {

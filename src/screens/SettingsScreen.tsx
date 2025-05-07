@@ -10,6 +10,7 @@ export default function SettingsScreen() {
   const [horizontalCardAnimationsEnabled, setHorizontalCardAnimationsEnabled] = useState(true);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] = useState(true);
   const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
+  const [plusEighteenEnabled, setPlusEighteenEnabled] = useState(true);
   const [readerOffset, setReaderOffset] = useState('0');
   const [webtoonSegmentHeight, setWebtoonSegmentHeight] = useState('1000');
   const [showRestartWarning, setShowRestartWarning] = useState(false);
@@ -19,12 +20,14 @@ export default function SettingsScreen() {
       const horizontalCardAnimationsSetting = await AsyncStorage.getItem('horizontal_card_animations');
       const verticalCardAnimationsSetting = await AsyncStorage.getItem('vertical_card_animations');
       const readerAnimationsSetting = await AsyncStorage.getItem('reader_animations');
+      const plusEighteenSetting = await AsyncStorage.getItem('plus_eighteen');
       const readerOffsetSetting = await AsyncStorage.getItem('reader_offset');
       const webtoonSegmentHeightSetting = await AsyncStorage.getItem('webtoon_segment_height');
 
       if (horizontalCardAnimationsSetting !== null) {setHorizontalCardAnimationsEnabled(horizontalCardAnimationsSetting === 'true');}
       if (verticalCardAnimationsSetting !== null) {setVerticalCardAnimationsEnabled(verticalCardAnimationsSetting === 'true');}
       if (readerAnimationsSetting !== null) {setReaderAnimationsEnabled(readerAnimationsSetting === 'true');}
+      if (plusEighteenSetting !== null) {setPlusEighteenEnabled(plusEighteenSetting === 'true');}
       if (readerOffsetSetting !== null) {setReaderOffset(readerOffsetSetting);}
       if (webtoonSegmentHeightSetting !== null) {setWebtoonSegmentHeight(webtoonSegmentHeightSetting);}
     };
@@ -49,6 +52,12 @@ export default function SettingsScreen() {
     const newValue = !readerAnimationsEnabled;
     setReaderAnimationsEnabled(newValue);
     await AsyncStorage.setItem('reader_animations', String(newValue));
+  };
+
+  const togglePlusEighteen = async () => {
+    const newValue = !plusEighteenEnabled;
+    setPlusEighteenEnabled(newValue);
+    await AsyncStorage.setItem('plus_eighteen', String(newValue));
   };
 
   const updateReaderOffset = async (value: string) => {
@@ -87,6 +96,11 @@ export default function SettingsScreen() {
       <View style={styles.settingRow}>
         <Text style={styles.text}>Reader Animations</Text>
         <Switch value={readerAnimationsEnabled} onValueChange={toggleReaderAnimations} />
+      </View>
+
+      <View style={styles.settingRow}>
+        <Text style={styles.text}>+18 Content</Text>
+        <Switch value={plusEighteenEnabled} onValueChange={togglePlusEighteen} />
       </View>
 
       <View style={styles.settingRow}>
