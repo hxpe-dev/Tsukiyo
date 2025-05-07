@@ -19,6 +19,7 @@ import RateLimitWarning from '../components/RateLimitWarning';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import PageLoading from '../components/PageLoading';
+import CropImage from '../components/CropImage';
 
 type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
@@ -26,8 +27,7 @@ const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 const headerHeight = 90;
 const progressHeight = 5;
-const securityValue = 1; // margin top of the image container and security value in reader height too
-const readerHeight = screenHeight - headerHeight - progressHeight - (2 * securityValue); // we do 2 times securityValue, to remove the marginTop and the value at the bottom.
+const readerHeight = screenHeight - headerHeight - progressHeight;
 
 const ReaderScreen = () => {
   const route = useRoute<ReaderScreenRouteProp>();
@@ -53,11 +53,25 @@ const ReaderScreen = () => {
   const currentChapter = chapters.find(ch => ch.id === activeChapterId);
 
   const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
+  const [readerOffset, setReaderOffset] = useState(0);
+  const [maxSegmentHeight, setMaxSegmentHeight] = useState(1000);
   useEffect(() => {
     if (isExternal) {return;}
 
     AsyncStorage.getItem('reader_animations').then((val) => {
       if (val !== null) {setReaderAnimationsEnabled(val === 'true');}
+    });
+    AsyncStorage.getItem('reader_offset').then((val) => {
+      if (val !== null) {
+        const offset = parseInt(val || '0', 10);
+        setReaderOffset(offset);
+      }
+    });
+    AsyncStorage.getItem('webtoon_segment_height').then((val) => {
+      if (val !== null) {
+        const segmentHeight = parseInt(val || '1000', 10);
+        setMaxSegmentHeight(segmentHeight);
+      }
     });
   }, [isExternal]);
 
@@ -216,31 +230,20 @@ const ReaderScreen = () => {
     if (viewableItems.length > 0) {
       const index = viewableItems[0].index;
       if (index !== null && index !== undefined) {
-        // Updates the page so that the top bar follows
         setCurrentPage(index);
       }
     }
   }).current;
 
   const renderItem = ({ item, index }: { item: string; index: number }) => {
+    const dimensions = imageDimensions[item];
+    if (!dimensions) {return null;} // Skip rendering until the dimensions are loaded
+
+    // For webtoons:
     if (isWebtoon.current) {
-      const dimensions = imageDimensions[item];
-      if (!dimensions) {return null;} // Skip rendering until the dimensions are loaded
-
-      const aspectRatio = dimensions.height / dimensions.width;
-      const scaledHeight = aspectRatio * screenWidth + 1;
-
       return (
         <View>
-          <Image
-            source={{ uri: item }}
-            style={{
-              width: screenWidth,
-              height: scaledHeight,
-            }}
-            resizeMode="contain"
-            resizeMethod="auto"
-          />
+          <CropImage uri={item} maxSegmentHeight={maxSegmentHeight} />
           {index === imageUrls.length - 1 && showNextChapterButton && (
             <View style={styles.nextChapterButtonWrapper}>
               <TouchableOpacity onPress={goToNextChapter} style={styles.nextChapterButton}>
@@ -251,6 +254,8 @@ const ReaderScreen = () => {
         </View>
       );
     }
+
+    // From now on this is for mangas:
 
     const handleTap = (event: any) => {
       const tapX = event.nativeEvent.locationX;
@@ -269,32 +274,22 @@ const ReaderScreen = () => {
       }
     };
 
+    const aspectRatio = dimensions.width / dimensions.height;
+    let finalWidth = screenWidth;
+    let finalHeight = screenWidth / aspectRatio;
+
+    if (finalHeight > readerHeight) {
+      finalHeight = readerHeight;
+      finalWidth = readerHeight * aspectRatio;
+    }
+
     const dynamicStyles = {
       image: {
-        width: screenWidth,
-        height: readerHeight,
-        // aspectRatio:
-        //   imageDimensions[item]?.width && imageDimensions[item]?.height
-        //     ? imageDimensions[item].width / imageDimensions[item].height
-        //     : 0.7, // fallback
+        width: finalWidth,
+        height: finalHeight,
       },
     };
 
-    // const dimensions = imageDimensions[item];
-
-    // let imageStyle = {
-    //   width: screenWidth,
-    //   height: readerHeight,
-    // };
-
-    // if (dimensions.height > readerHeight) {
-    //   imageStyle = {
-    //     height: readerHeigh
-    //   }
-    // }
-
-
-    // Manga (horizontal paged with zoom)
     return (
       <ScrollView
         style={styles.zoomContainer}
@@ -303,7 +298,7 @@ const ReaderScreen = () => {
         contentContainerStyle={styles.scrollContent}
       >
         <TouchableOpacity activeOpacity={1} onPress={handleTap} style={styles.flex1}>
-          <View style={styles.centeredImageWrapper}>
+          <View style={[styles.centeredImageWrapper, { height: readerHeight - readerOffset }]}>
             <Image
               source={{ uri: item }}
               style={dynamicStyles.image}
@@ -384,13 +379,14 @@ const ReaderScreen = () => {
         onEndReached={isWebtoon.current ? () => setShowNextChapterButton(true) : undefined}
         onEndReachedThreshold={0.9}
         // PERFORMANCE SETTINGS START
-        removeClippedSubviews={false}
-        initialNumToRender={3}
-        maxToRenderPerBatch={3}
-        windowSize={3}
+        removeClippedSubviews={true}
+        initialNumToRender={isWebtoon.current ? 5 : 3}
+        maxToRenderPerBatch={isWebtoon.current ? 5 : 3}
+        windowSize={isWebtoon.current ? undefined : 3}
         updateCellsBatchingPeriod={5}
         // PERFORMANCE SETTINGS END
       />
+
       {!isWebtoon.current && (
         <ProgressBar
           height={progressHeight}
@@ -416,6 +412,8 @@ const useThemedStyles = (theme: any) =>
       backgroundColor: theme.background,
     },
     header: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
       height: headerHeight,
       paddingHorizontal: 16,
       paddingVertical: 16,
@@ -433,8 +431,8 @@ const useThemedStyles = (theme: any) =>
       fontWeight: 'normal',
     },
     centeredImageWrapper: {
-      marginTop: securityValue,
-      height: readerHeight,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     centered: {
       flex: 1,
@@ -449,7 +447,7 @@ const useThemedStyles = (theme: any) =>
     },
     zoomContainer: {
       width: screenWidth,
-      height: screenHeight,
+      height: readerHeight,
       backgroundColor: theme.background,
     },
     scrollContent: {

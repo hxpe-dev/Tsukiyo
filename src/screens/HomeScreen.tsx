@@ -9,7 +9,6 @@ import HorizontalListDisplayer from '../components/HorizontalListDisplayer';
 import { DisplayableManga, Manga, MangaProgressItem } from '../types/mangadex';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
-  // loadMangaListFromStorage,
   getAllReadingProgress,
   removeReadingProgress,
 } from '../utils/storage';
@@ -23,7 +22,6 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
-  // const [planningList, setPlanningList] = useState<Manga[]>([]);
   const [currentlyReadingList, setCurrentlyReadingList] = useState<MangaProgressItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -35,10 +33,7 @@ export default function HomeScreen() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // const planningMangas: Manga[] = await loadMangaListFromStorage();
       const readingMangas: MangaProgressItem[] = await getAllReadingProgress();
-
-      // setPlanningList(planningMangas);
       setCurrentlyReadingList(readingMangas);
     } catch (error) {
       console.error('Error loading manga data', error);

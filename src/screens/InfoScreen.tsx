@@ -164,7 +164,7 @@ const InfoScreen = () => {
             {item.attributes.externalUrl ? ' (External)' : ''}
           </Text>
           {isDownloaded && (
-            <Icon name="check" size={24} color="#008000" style={styles.checkIcon} />
+            <Icon name="check" size={24} color={theme.positive} style={styles.checkIcon} />
           )}
         </View>
       </TouchableOpacity>

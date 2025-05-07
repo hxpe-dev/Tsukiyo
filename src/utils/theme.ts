@@ -4,7 +4,7 @@ export const lightTheme = {
   navbar: '#FEFFFF',
   text: '#000000',
   textSecondary: '#555555',
-  header: '#F2F2F2',
+  header: '#FFFFFF',
   button: '#6200EE',
   bigButton: '#6200EE',
   buttonSecondary: '#F2F2F2',
@@ -12,6 +12,7 @@ export const lightTheme = {
   buttonText: '#FFFFFF',
   border: '#CCCCCC',
   shadow: '#000000',
+  positive: '#008000',
   error: '#ff0000',
   warning: '#d97706',
 };
@@ -29,7 +30,8 @@ export const darkTheme = {
   unselectedButton: '#2a2d2c',
   buttonText: '#000000',
   border: '#575757',
-  shadow: '#1e2021',
+  shadow: '#000000',
+  positive: '#008000',
   error: '#ff0000',
   warning: '#d97706',
 };

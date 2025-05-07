@@ -13,6 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { MangaDownloads } from '../types/mangadex';
 import { useTheme } from '../context/ThemeContext';
+import Share from 'react-native-share';
 
 import {
   getAllDownloads,
@@ -56,6 +57,23 @@ export default function ProfileScreen() {
       })
     );
     setSizes(sizeMap);
+  };
+
+  const shareImages = async (imageUris: string[]) => {
+    try {
+      const urls = imageUris.map((uri) => uri.startsWith('file://') ? uri : `file://${uri}`);
+
+      const shareOptions = {
+        urls,
+        type: 'image/jpeg',
+        failOnCancel: false,
+      };
+
+      await Share.open(shareOptions);
+    } catch (error) {
+      console.error('Failed to share images:', error);
+      Alert.alert('Error', 'Could not share the images.');
+    }
   };
 
   const toggleExpand = (mangaId: string) => {
@@ -116,15 +134,27 @@ export default function ProfileScreen() {
             if (chapterId === 'title') {return null;}
 
             const images = chapterImages as string[];
+            console.log(images);
 
             return (
               <View key={chapterId} style={styles.chapterRow}>
                 <Text style={styles.chapterText}>
                   {chapterId.slice(0, 5)}... ({images.length} images)
                 </Text>
-                <TouchableOpacity onPress={() => handleDeleteChapter(mangaId, chapterId)}>
-                  <Icon name="trash" size={16} color="red" />
-                </TouchableOpacity>
+                <View style={styles.utilsRow}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (images.length > 0) {
+                        shareImages(images);
+                      }
+                    }}
+                  >
+                    <Icon name="share-2" size={16} color={theme.button} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteChapter(mangaId, chapterId)}>
+                    <Icon name="trash" size={16} color="red" />
+                  </TouchableOpacity>
+                </View>
               </View>
             );
           })}
@@ -194,6 +224,10 @@ const useThemedStyles = (theme: any) =>
     flexRow: {
       flexDirection: 'row',
       alignItems: 'center',
+    },
+    utilsRow: {
+      flexDirection: 'row',
+      gap: 10,
     },
     mangaTitle: {
       width: '86%',

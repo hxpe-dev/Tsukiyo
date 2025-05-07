@@ -18,8 +18,8 @@ const sliderWidth = 50;
 export default function Navbar() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const { theme } = useTheme();
-  const styles = useThemedStyles(theme);
+  const { theme, isDark } = useTheme();
+  const styles = useThemedStyles(theme, isDark);
 
   // currentScreen works but is not used for the moment
   // const [currentScreen, setCurrentScreen] = useState<keyof MainStackParamList>('Home');
@@ -80,7 +80,7 @@ export default function Navbar() {
   );
 }
 
-const useThemedStyles = (theme: any) =>
+const useThemedStyles = (theme: any, isDark: any) =>
   StyleSheet.create({
     navbar: {
       position: 'absolute',
@@ -97,7 +97,7 @@ const useThemedStyles = (theme: any) =>
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.1,
       shadowRadius: 8,
-      elevation: 10,
+      elevation: isDark ? 1 : 10, // was 10
       overflow: 'hidden',
     },
     button: {

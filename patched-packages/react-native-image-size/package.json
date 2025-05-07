@@ -1,0 +1,28 @@
+{
+  "name": "react-native-image-size",
+  "description": "Get original image size (iOS + Android)",
+  "main": "index.js",
+  "author": "Ivan Sorokin <existfragger@gmail.com>",
+  "version": "1.1.6",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eXist-FraGGer/react-native-image-size.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "homepage": "https://github.com/eXist-FraGGer/react-native-image-size#readme",
+  "keywords": [
+    "react",
+    "react-native",
+    "image",
+    "size",
+    "dimensions",
+    "resolution",
+    "width",
+    "height",
+    "android",
+    "ios"
+  ],
+  "license": "MIT"
+}

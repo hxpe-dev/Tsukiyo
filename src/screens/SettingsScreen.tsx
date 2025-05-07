@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Switch } from 'react-native';
+import { View, Text, StyleSheet, Switch, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 
@@ -10,6 +10,8 @@ export default function SettingsScreen() {
   const [horizontalCardAnimationsEnabled, setHorizontalCardAnimationsEnabled] = useState(true);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] = useState(true);
   const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
+  const [readerOffset, setReaderOffset] = useState('0');
+  const [webtoonSegmentHeight, setWebtoonSegmentHeight] = useState('1000');
   const [showRestartWarning, setShowRestartWarning] = useState(false);
 
   useEffect(() => {
@@ -17,10 +19,14 @@ export default function SettingsScreen() {
       const horizontalCardAnimationsSetting = await AsyncStorage.getItem('horizontal_card_animations');
       const verticalCardAnimationsSetting = await AsyncStorage.getItem('vertical_card_animations');
       const readerAnimationsSetting = await AsyncStorage.getItem('reader_animations');
+      const readerOffsetSetting = await AsyncStorage.getItem('reader_offset');
+      const webtoonSegmentHeightSetting = await AsyncStorage.getItem('webtoon_segment_height');
 
       if (horizontalCardAnimationsSetting !== null) {setHorizontalCardAnimationsEnabled(horizontalCardAnimationsSetting === 'true');}
       if (verticalCardAnimationsSetting !== null) {setVerticalCardAnimationsEnabled(verticalCardAnimationsSetting === 'true');}
       if (readerAnimationsSetting !== null) {setReaderAnimationsEnabled(readerAnimationsSetting === 'true');}
+      if (readerOffsetSetting !== null) {setReaderOffset(readerOffsetSetting);}
+      if (webtoonSegmentHeightSetting !== null) {setWebtoonSegmentHeight(webtoonSegmentHeightSetting);}
     };
 
     loadSettings();
@@ -45,6 +51,22 @@ export default function SettingsScreen() {
     await AsyncStorage.setItem('reader_animations', String(newValue));
   };
 
+  const updateReaderOffset = async (value: string) => {
+    // Only allow numeric input
+    if (/^\d*$/.test(value)) {
+      setReaderOffset(value);
+      await AsyncStorage.setItem('reader_offset', value);
+    }
+  };
+
+  const updateWebtoonSegmentHeight = async (value: string) => {
+    // Only allow numeric input
+    if (/^\d*$/.test(value)) {
+      setWebtoonSegmentHeight(value);
+      await AsyncStorage.setItem('webtoon_segment_height', value);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.settingRow}>
@@ -65,6 +87,26 @@ export default function SettingsScreen() {
       <View style={styles.settingRow}>
         <Text style={styles.text}>Reader Animations</Text>
         <Switch value={readerAnimationsEnabled} onValueChange={toggleReaderAnimations} />
+      </View>
+
+      <View style={styles.settingRow}>
+        <Text style={styles.text}>Reader Offset</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          value={readerOffset}
+          onChangeText={updateReaderOffset}
+        />
+      </View>
+
+      <View style={styles.settingRow}>
+        <Text style={styles.text}>Webtoon Segment Height</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          value={webtoonSegmentHeight}
+          onChangeText={updateWebtoonSegmentHeight}
+        />
       </View>
 
       {showRestartWarning && (
@@ -109,5 +151,15 @@ const useThemedStyles = (theme: any) =>
       fontSize: 16,
       fontWeight: 'bold',
       color: theme.text,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: theme.text,
+      color: theme.text,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      width: 80,
+      textAlign: 'right',
     },
   });
