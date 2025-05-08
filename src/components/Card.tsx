@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import {Manga, MangaProgress} from '../types/mangadex';
 import {useTheme} from '../context/ThemeContext';
+import { getTitleFromItem } from '../utils/languages';
 
 interface CardProps {
   item: Manga | MangaProgress;
@@ -38,7 +39,7 @@ const Card: React.FC<CardProps> = ({
   const animation = useState(new Animated.Value(0.3))[0];
   const wasVisible = useRef(false);
   const currentlyAnimatingCount = useRef(0);
-  const MAX_ANIMATIONS = 6;
+  const MAX_ANIMATIONS = 12;
 
   useEffect(() => {
     if (
@@ -70,9 +71,9 @@ const Card: React.FC<CardProps> = ({
   }, [isVisible, animation]);
 
   const isManga = (obj: any): obj is Manga => 'attributes' in obj;
-  const title = isManga(item)
-    ? item.attributes.title.en ?? item.attributes.title['ja-ro'] ?? 'No Title'
-    : item.title ?? 'No Title';
+
+  const title = isManga(item) ? getTitleFromItem(item) : item.title ?? 'No Title';
+
   const cover = isManga(item)
     ? `https://uploads.mangadex.org/covers/${item.id}/${item.coverFileName}.512.jpg`
     : item.cover;

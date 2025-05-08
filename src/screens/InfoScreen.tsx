@@ -22,6 +22,7 @@ import {isChapterDownloaded, getReadingProgress} from '../utils/storage';
 import Icon from 'react-native-vector-icons/Feather';
 import RateLimitWarning from '../components/RateLimitWarning';
 import {useTheme} from '../context/ThemeContext';
+import { getTitleFromItem } from '../utils/languages';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InfoScreenRouteProp = RouteProp<RootStackParamList, 'Info'>;
@@ -199,7 +200,7 @@ const InfoScreen = () => {
     if (chapterId && manga) {
       navigation.navigate('Reader', {
         mangaId: manga.id,
-        mangaTitle: manga.attributes.title.en || 'No title',
+        mangaTitle: getTitleFromItem(manga),
         mangaLang: selectedLanguage,
         mangaCover: imageUrl || '',
         chapterId,
@@ -257,7 +258,7 @@ const InfoScreen = () => {
     <View>
       {imageUrl && <Image source={{uri: imageUrl}} style={styles.coverImage} />}
       <Text style={styles.title}>
-        {manga.attributes.title.en || 'No title'}
+        {getTitleFromItem(manga)}
       </Text>
       <Text style={styles.label}>
         Status: {manga.attributes.status || 'Unknown'}
