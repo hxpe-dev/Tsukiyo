@@ -14,6 +14,8 @@ Tsukiyo is a manga reading app using the [mangadex api](https://api.mangadex.org
 
 > **Tsukiyo (月夜; Tsuki-yo)** literally means "moonlit night" in Japanese — a serene and poetic image of the moon casting its glow across the darkness.
 
+⚠️ **Note:** This app is primarily tested on Android. It has **not been tested on iOS**, and behavior on Apple devices is **not guaranteed**.
+
 ## Terms of Use
 By downloading, installing, or using this application, you agree to the following terms:
 - Use the application in compliance with all applicable laws.

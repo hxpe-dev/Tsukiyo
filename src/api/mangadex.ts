@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee from '@notifee/react-native';
 import {MangaProgress} from '../types/mangadex';
-import {getLanguageName} from '../utils/getLanguageName';
+import {getLanguageName} from '../utils/languages';
 
 const STORAGE_KEY = '@manga_progress';
 
