@@ -1,7 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Text, Image, StyleSheet, Animated, TouchableOpacity } from 'react-native';
-import { Manga, MangaProgress } from '../types/mangadex';
-import { useTheme } from '../context/ThemeContext';
+import React, {useState, useEffect, useRef} from 'react';
+import {
+  Text,
+  Image,
+  StyleSheet,
+  Animated,
+  TouchableOpacity,
+} from 'react-native';
+import {Manga, MangaProgress} from '../types/mangadex';
+import {useTheme} from '../context/ThemeContext';
 
 interface CardProps {
   item: Manga | MangaProgress;
@@ -26,7 +32,7 @@ const Card: React.FC<CardProps> = ({
   onClick,
   onLongPress,
 }) => {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
   const animation = useState(new Animated.Value(0.3))[0];
@@ -35,7 +41,11 @@ const Card: React.FC<CardProps> = ({
   const MAX_ANIMATIONS = 6;
 
   useEffect(() => {
-    if (isVisible && !wasVisible.current && currentlyAnimatingCount.current < MAX_ANIMATIONS) {
+    if (
+      isVisible &&
+      !wasVisible.current &&
+      currentlyAnimatingCount.current < MAX_ANIMATIONS
+    ) {
       wasVisible.current = true;
       currentlyAnimatingCount.current += 1;
 
@@ -70,7 +80,7 @@ const Card: React.FC<CardProps> = ({
   const chapterInfo = !isManga(item)
     ? item.externalUrl
       ? `Ch. ${item.chapterNum} (external)`
-      : `Ch. ${item.chapterNum} • Pg. ${item.page as unknown as number + 1}`
+      : `Ch. ${item.chapterNum} • Pg. ${(item.page as unknown as number) + 1}`
     : null;
 
   const dynamicStyles = {
@@ -95,23 +105,16 @@ const Card: React.FC<CardProps> = ({
   };
 
   return (
-    <TouchableOpacity
-      onPress={onClick}
-      onLongPress={onLongPress}
-    >
+    <TouchableOpacity onPress={onClick} onLongPress={onLongPress}>
       <Animated.View
         style={[
           dynamicStyles.itemContainer,
           {
             opacity: animation,
-            transform: [{ scale: animation }],
+            transform: [{scale: animation}],
           },
-        ]}
-      >
-        <Image
-          source={{ uri: cover as string }}
-          style={dynamicStyles.image}
-        />
+        ]}>
+        <Image source={{uri: cover as string}} style={dynamicStyles.image} />
         <Text numberOfLines={1} style={dynamicStyles.title}>
           {title as string}
         </Text>

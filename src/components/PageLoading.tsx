@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import {View, StyleSheet, ActivityIndicator} from 'react-native';
+import {useTheme} from '../context/ThemeContext';
 
 export default function PageLoading() {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
   return (

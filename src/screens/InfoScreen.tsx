@@ -1,14 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { Text, Image, StyleSheet, TouchableOpacity, FlatList, View, ScrollView } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { RootStackParamList } from '../navigation/AppNavigator';
-import { getMangaById, getMangaChapters, isApiRateLimited } from '../api/mangadex';
-import { Chapter, Manga, MangaProgressEntry } from '../types/mangadex';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { isChapterDownloaded, getReadingProgress } from '../utils/storage';
+import React, {useEffect, useState} from 'react';
+import {
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  View,
+  ScrollView,
+} from 'react-native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
+import {RootStackParamList} from '../navigation/AppNavigator';
+import {
+  getMangaById,
+  getMangaChapters,
+  isApiRateLimited,
+  checkForNewChapters,
+} from '../api/mangadex';
+import {Chapter, Manga, MangaProgressEntry} from '../types/mangadex';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {isChapterDownloaded, getReadingProgress} from '../utils/storage';
 import Icon from 'react-native-vector-icons/Feather';
 import RateLimitWarning from '../components/RateLimitWarning';
-import { useTheme } from '../context/ThemeContext';
+import {useTheme} from '../context/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InfoScreenRouteProp = RouteProp<RootStackParamList, 'Info'>;
@@ -18,7 +31,7 @@ const InfoScreen = () => {
   const route = useRoute<InfoScreenRouteProp>();
   const item = route.params.item;
 
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
   const [manga, setManga] = useState<Manga | null>(null);
@@ -29,15 +42,19 @@ const InfoScreen = () => {
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedUrl, setSelectedUrl] = useState<string | null>('all');
-  const [readingProgress, setReadingProgress] = useState<MangaProgressEntry | null>(null);
+  const [readingProgress, setReadingProgress] =
+    useState<MangaProgressEntry | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMoreChapters, setHasMoreChapters] = useState<boolean>(true);
-  const [downloadedChapterIds, setDownloadedChapterIds] = useState<Set<string>>(new Set());
+  const [downloadedChapterIds, setDownloadedChapterIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [rateLimited, setRateLimited] = useState(false);
 
   const isManga = (obj: any): obj is Manga => 'attributes' in obj;
 
   useEffect(() => {
+    checkForNewChapters();
     const resolveManga = async () => {
       if (isApiRateLimited()) {
         setRateLimited(true);
@@ -63,7 +80,9 @@ const InfoScreen = () => {
   }, [item]);
 
   useEffect(() => {
-    if (!manga) {return;}
+    if (!manga) {
+      return;
+    }
     const getMangaProgress = async () => {
       const mangaProgress = await getReadingProgress(manga.id);
       setReadingProgress(mangaProgress);
@@ -74,7 +93,9 @@ const InfoScreen = () => {
   }, [manga]);
 
   useEffect(() => {
-    if (!manga) {return;}
+    if (!manga) {
+      return;
+    }
     setChapters([]);
     setMangadexChapters([]);
     setExternalChapters([]);
@@ -84,7 +105,9 @@ const InfoScreen = () => {
 
   useEffect(() => {
     const fetchChapters = async () => {
-      if (!manga || !hasMoreChapters || loading) {return;}
+      if (!manga || !hasMoreChapters || loading) {
+        return;
+      }
       if (isApiRateLimited()) {
         setRateLimited(true);
         return;
@@ -93,29 +116,43 @@ const InfoScreen = () => {
       setLoading(true);
 
       try {
-        const fetchedChapters = await getMangaChapters(manga.id, selectedLanguage, currentPage);
+        const fetchedChapters = await getMangaChapters(
+          manga.id,
+          selectedLanguage,
+          currentPage,
+        );
 
         if (Array.isArray(fetchedChapters)) {
           const newChapters = fetchedChapters.filter(
-            (newChapter) => !chapters.some((existing) => existing.id === newChapter.id)
+            newChapter =>
+              !chapters.some(existing => existing.id === newChapter.id),
           );
 
-          const mangadex = newChapters.filter(chapter => !chapter.attributes.externalUrl);
-          const external = newChapters.filter(chapter => chapter.attributes.externalUrl);
+          const mangadex = newChapters.filter(
+            chapter => !chapter.attributes.externalUrl,
+          );
+          const external = newChapters.filter(
+            chapter => chapter.attributes.externalUrl,
+          );
 
           if (newChapters.length > 0) {
-            setChapters((prev) => [...prev, ...newChapters]);
-            setMangadexChapters((prev) => [...prev, ...mangadex]);
-            setExternalChapters((prev) => [...prev, ...external]);
-            setCurrentPage((prev) => prev + 1);
+            setChapters(prev => [...prev, ...newChapters]);
+            setMangadexChapters(prev => [...prev, ...mangadex]);
+            setExternalChapters(prev => [...prev, ...external]);
+            setCurrentPage(prev => prev + 1);
 
             // Check which chapters are downloaded
             const newDownloadedIds = new Set(downloadedChapterIds);
             await Promise.all(
-              newChapters.map(async (chapter) => {
-                const downloaded = await isChapterDownloaded(manga.id, chapter.id);
-                if (downloaded) {newDownloadedIds.add(chapter.id);}
-              })
+              newChapters.map(async chapter => {
+                const downloaded = await isChapterDownloaded(
+                  manga.id,
+                  chapter.id,
+                );
+                if (downloaded) {
+                  newDownloadedIds.add(chapter.id);
+                }
+              }),
             );
             setDownloadedChapterIds(newDownloadedIds);
           } else {
@@ -134,16 +171,33 @@ const InfoScreen = () => {
     };
 
     fetchChapters();
-  }, [manga, selectedLanguage, currentPage, hasMoreChapters, loading, chapters, downloadedChapterIds]);
+  }, [
+    manga,
+    selectedLanguage,
+    currentPage,
+    hasMoreChapters,
+    loading,
+    chapters,
+    downloadedChapterIds,
+  ]);
 
-  const handleStartReading = (chapterId?: string, externalUrl?: string | null) => {
+  const handleStartReading = (
+    chapterId?: string,
+    externalUrl?: string | null,
+  ) => {
     if (chapterId && manga) {
       navigation.navigate('Reader', {
         mangaId: manga.id,
         mangaTitle: manga.attributes.title.en || 'No title',
+        mangaLang: selectedLanguage,
         mangaCover: imageUrl || '',
         chapterId,
-        chapters: selectedUrl === 'all' ? chapters : selectedUrl === 'mangadex' ? mangadexChapters : externalChapters,
+        chapters:
+          selectedUrl === 'all'
+            ? chapters
+            : selectedUrl === 'mangadex'
+            ? mangadexChapters
+            : externalChapters,
         page: 0,
         externalUrl: externalUrl || null,
       });
@@ -151,20 +205,27 @@ const InfoScreen = () => {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
-  const renderChapterItem = ({ item }: { item: Chapter }) => {
+  const renderChapterItem = ({item}: {item: Chapter}) => {
     const isDownloaded = downloadedChapterIds.has(item.id);
     return (
       <TouchableOpacity
         style={styles.chapterItem}
-        onPress={() => handleStartReading(item.id, item.attributes.externalUrl)}
-      >
+        onPress={() =>
+          handleStartReading(item.id, item.attributes.externalUrl)
+        }>
         <View style={styles.chapterRow}>
           <Text style={styles.chapterTitle}>
-            Chapter {item.attributes.chapter || '?'} {item.attributes.title ? ': ' + item.attributes.title : ''}
+            Chapter {item.attributes.chapter || '?'}{' '}
+            {item.attributes.title ? ': ' + item.attributes.title : ''}
             {item.attributes.externalUrl ? ' (External)' : ''}
           </Text>
           {isDownloaded && (
-            <Icon name="check" size={24} color={theme.positive} style={styles.checkIcon} />
+            <Icon
+              name="check"
+              size={24}
+              color={theme.positive}
+              style={styles.checkIcon}
+            />
           )}
         </View>
       </TouchableOpacity>
@@ -173,13 +234,13 @@ const InfoScreen = () => {
 
   const handleEndReached = () => {
     if (!loading && hasMoreChapters) {
-      setCurrentPage((prev) => prev + 1);
+      setCurrentPage(prev => prev + 1);
     }
   };
 
   if (!manga) {
     // eslint-disable-next-line react-native/no-inline-styles
-    return <Text style={{ padding: 16 }}>Loading manga info...</Text>;
+    return <Text style={{padding: 16}}>Loading manga info...</Text>;
   }
 
   const imageUrl = manga.coverFileName
@@ -188,15 +249,24 @@ const InfoScreen = () => {
 
   const renderHeader = () => (
     <View>
-      {imageUrl && <Image source={{ uri: imageUrl }} style={styles.coverImage} />}
-      <Text style={styles.title}>{manga.attributes.title.en || 'No title'}</Text>
-      <Text style={styles.label}>Status: {manga.attributes.status || 'Unknown'}</Text>
+      {imageUrl && <Image source={{uri: imageUrl}} style={styles.coverImage} />}
+      <Text style={styles.title}>
+        {manga.attributes.title.en || 'No title'}
+      </Text>
+      <Text style={styles.label}>
+        Status: {manga.attributes.status || 'Unknown'}
+      </Text>
       <Text style={styles.label}>Year: {manga.attributes.year || 'N/A'}</Text>
-      <Text style={styles.label}>Content Rating: {manga.attributes.contentRating || 'N/A'}</Text>
+      <Text style={styles.label}>
+        Content Rating: {manga.attributes.contentRating || 'N/A'}
+      </Text>
       <Text style={styles.description}>
         {manga.attributes.description.en || 'No description available.'}
       </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.languageScroller}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.languageScroller}>
         {availableLanguages.map((lang, index) => (
           <TouchableOpacity
             key={index}
@@ -204,32 +274,35 @@ const InfoScreen = () => {
               styles.languageButton,
               lang === selectedLanguage && styles.selectedLanguageButton,
             ]}
-            onPress={() => setSelectedLanguage(lang)}
-          >
+            onPress={() => setSelectedLanguage(lang)}>
             <Text
               style={[
                 styles.languageButtonText,
                 lang === selectedLanguage && styles.selectedLanguageButtonText,
-              ]}
-            >
+              ]}>
               {lang.toUpperCase()}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.urlScroller}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.urlScroller}>
         {chapters.length > 0 && (
           <TouchableOpacity
             style={[
               styles.urlButton,
               selectedUrl === 'all' && styles.selectedUrlButton,
             ]}
-            onPress={() => setSelectedUrl('all')}
-          >
-            <Text style={[
-              styles.urlButtonText,
-              selectedUrl === 'all' && styles.selectedUrlButtonText,
-            ]}>All</Text>
+            onPress={() => setSelectedUrl('all')}>
+            <Text
+              style={[
+                styles.urlButtonText,
+                selectedUrl === 'all' && styles.selectedUrlButtonText,
+              ]}>
+              All
+            </Text>
           </TouchableOpacity>
         )}
         {mangadexChapters.length > 0 && (
@@ -238,12 +311,14 @@ const InfoScreen = () => {
               styles.urlButton,
               selectedUrl === 'mangadex' && styles.selectedUrlButton,
             ]}
-            onPress={() => setSelectedUrl('mangadex')}
-          >
-            <Text style={[
-              styles.urlButtonText,
-              selectedUrl === 'mangadex' && styles.selectedUrlButtonText,
-            ]}>Mangadex</Text>
+            onPress={() => setSelectedUrl('mangadex')}>
+            <Text
+              style={[
+                styles.urlButtonText,
+                selectedUrl === 'mangadex' && styles.selectedUrlButtonText,
+              ]}>
+              Mangadex
+            </Text>
           </TouchableOpacity>
         )}
         {externalChapters.length > 0 && (
@@ -252,12 +327,14 @@ const InfoScreen = () => {
               styles.urlButton,
               selectedUrl === 'external' && styles.selectedUrlButton,
             ]}
-            onPress={() => setSelectedUrl('external')}
-          >
-            <Text style={[
-              styles.urlButtonText,
-              selectedUrl === 'external' && styles.selectedUrlButtonText,
-            ]}>External</Text>
+            onPress={() => setSelectedUrl('external')}>
+            <Text
+              style={[
+                styles.urlButtonText,
+                selectedUrl === 'external' && styles.selectedUrlButtonText,
+              ]}>
+              External
+            </Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -268,6 +345,7 @@ const InfoScreen = () => {
             navigation.navigate('Reader', {
               mangaId: manga.id,
               mangaTitle: readingProgress.mangaTitle,
+              mangaLang: selectedLanguage,
               mangaCover: readingProgress.mangaCover,
               chapterId: readingProgress.chapterId,
               chapters: readingProgress.chapters,
@@ -275,10 +353,12 @@ const InfoScreen = () => {
               externalUrl: readingProgress.externalUrl || null,
             });
           } else {
-            handleStartReading(chapters[0]?.id, chapters[0]?.attributes.externalUrl || null);
+            handleStartReading(
+              chapters[0]?.id,
+              chapters[0]?.attributes.externalUrl || null,
+            );
           }
-        }}
-      >
+        }}>
         <Text style={styles.startButtonText}>
           {readingProgress ? 'Continue Reading' : 'Start Reading'}
         </Text>
@@ -290,8 +370,14 @@ const InfoScreen = () => {
 
   return (
     <FlatList
-      data={selectedUrl === 'all' ? chapters : selectedUrl === 'mangadex' ? mangadexChapters : externalChapters}
-      keyExtractor={(chapter) => `${chapter.id}-${selectedLanguage}`}
+      data={
+        selectedUrl === 'all'
+          ? chapters
+          : selectedUrl === 'mangadex'
+          ? mangadexChapters
+          : externalChapters
+      }
+      keyExtractor={chapter => `${chapter.id}-${selectedLanguage}`}
       renderItem={renderChapterItem}
       ListHeaderComponent={renderHeader}
       contentContainerStyle={styles.container}

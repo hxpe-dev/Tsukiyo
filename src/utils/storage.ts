@@ -1,5 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MangaProgress, MangaDownloads, Chapter, MangaProgressEntry, MangaProgressItem } from '../types/mangadex';
+import {
+  MangaProgress,
+  MangaDownloads,
+  Chapter,
+  MangaProgressEntry,
+  MangaProgressItem,
+} from '../types/mangadex';
 import RNFS from 'react-native-fs';
 
 // const MANGA_PLANNING_KEY = '@manga_planning'; // Static key for manga list
@@ -37,6 +43,7 @@ const MANGA_DOWNLOADS_KEY = '@manga_downloads';
 export const saveReadingProgress = async (
   mangaId: string,
   mangaTitle: string,
+  mangaLang: string,
   mangaCover: string,
   chapterId: string,
   chapterNum: string,
@@ -48,7 +55,17 @@ export const saveReadingProgress = async (
     const raw = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
     const progressMap: MangaProgress = raw ? JSON.parse(raw) : {};
 
-    progressMap[mangaId] = { mangaTitle, mangaCover, chapterId, chapterNum, chapters, page, externalUrl, lastRead: new Date().toISOString() };
+    progressMap[mangaId] = {
+      mangaTitle,
+      mangaLang,
+      mangaCover,
+      chapterId,
+      chapterNum,
+      chapters,
+      page,
+      externalUrl,
+      lastRead: new Date().toISOString(),
+    };
 
     await AsyncStorage.setItem(MANGA_PROGRESS_KEY, JSON.stringify(progressMap));
   } catch (e) {
@@ -57,7 +74,7 @@ export const saveReadingProgress = async (
 };
 
 export const getReadingProgress = async (
-  mangaId: string
+  mangaId: string,
 ): Promise<MangaProgressEntry | null> => {
   try {
     const jsonValue = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
@@ -72,21 +89,26 @@ export const getReadingProgress = async (
 export const getAllReadingProgress = async (): Promise<MangaProgressItem[]> => {
   try {
     const jsonValue = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
-    if (!jsonValue) {return [];}
+    if (!jsonValue) {
+      return [];
+    }
 
     const progress = JSON.parse(jsonValue);
 
-    const mangaList: MangaProgressItem[] = Object.entries(progress).map(([id, entry]: any) => ({
-      id,
-      title: entry.mangaTitle,
-      cover: entry.mangaCover,
-      chapterId: entry.chapterId,
-      chapterNum: entry.chapterNum,
-      chapters: entry.chapters,
-      page: entry.page,
-      externalUrl: entry.externalUrl,
-      lastRead: entry.lastRead || null,
-    }));
+    const mangaList: MangaProgressItem[] = Object.entries(progress).map(
+      ([id, entry]: any) => ({
+        id,
+        title: entry.mangaTitle,
+        lang: entry.mangaLang,
+        cover: entry.mangaCover,
+        chapterId: entry.chapterId,
+        chapterNum: entry.chapterNum,
+        chapters: entry.chapters,
+        page: entry.page,
+        externalUrl: entry.externalUrl,
+        lastRead: entry.lastRead || null,
+      }),
+    );
 
     mangaList.sort((a, b) => {
       const dateA = a.lastRead ? new Date(a.lastRead).getTime() : 0;
@@ -104,12 +126,17 @@ export const getAllReadingProgress = async (): Promise<MangaProgressItem[]> => {
 export const removeReadingProgress = async (mangaId: string): Promise<void> => {
   try {
     const raw = await AsyncStorage.getItem(MANGA_PROGRESS_KEY);
-    if (!raw) {return;}
+    if (!raw) {
+      return;
+    }
 
     const progressMap = JSON.parse(raw);
     if (progressMap[mangaId]) {
       delete progressMap[mangaId];
-      await AsyncStorage.setItem(MANGA_PROGRESS_KEY, JSON.stringify(progressMap));
+      await AsyncStorage.setItem(
+        MANGA_PROGRESS_KEY,
+        JSON.stringify(progressMap),
+      );
     }
   } catch (e) {
     console.error('Error removing manga progress', e);
@@ -141,7 +168,9 @@ export const saveChapterImagesLocally = async (
       if (result.statusCode === 200) {
         localPaths.push('file://' + filePath);
       } else {
-        console.warn(`Failed to download image ${i}: status ${result.statusCode}`);
+        console.warn(
+          `Failed to download image ${i}: status ${result.statusCode}`,
+        );
       }
     } catch (e) {
       console.error(`Failed to download image ${i}`, e);
@@ -152,7 +181,7 @@ export const saveChapterImagesLocally = async (
   const allDownloads: MangaDownloads = raw ? JSON.parse(raw) : {};
 
   if (!allDownloads[mangaId]) {
-    allDownloads[mangaId] = { title: mangaTitle }; // Store the manga title
+    allDownloads[mangaId] = {title: mangaTitle}; // Store the manga title
   }
 
   allDownloads[mangaId][chapterId] = localPaths; // Store local paths for chapter images
@@ -164,16 +193,20 @@ export const saveChapterImagesLocally = async (
 
 export const getDownloadedChapter = async (
   mangaId: string,
-  chapterId: string
-): Promise<{ title: string, images: string[] } | null> => {
+  chapterId: string,
+): Promise<{title: string; images: string[]} | null> => {
   const raw = await AsyncStorage.getItem(MANGA_DOWNLOADS_KEY);
   const allDownloads: MangaDownloads = raw ? JSON.parse(raw) : {};
 
   const chapterData = allDownloads[mangaId];
-  if (!chapterData) {return null;}
+  if (!chapterData) {
+    return null;
+  }
 
   const chapter = chapterData[chapterId];
-  if (!Array.isArray(chapter)) {return null;}
+  if (!Array.isArray(chapter)) {
+    return null;
+  }
 
   return {
     title: chapterData.title,
@@ -183,10 +216,10 @@ export const getDownloadedChapter = async (
 
 export const isChapterDownloaded = async (
   mangaId: string,
-  chapterId: string
+  chapterId: string,
 ): Promise<boolean> => {
   const chapter = await getDownloadedChapter(mangaId, chapterId);
-  return chapter ? (chapter.images.length > 0) : false;
+  return chapter ? chapter.images.length > 0 : false;
 };
 
 export const getAllDownloads = async (): Promise<MangaDownloads> => {
@@ -201,7 +234,7 @@ export const getAllDownloads = async (): Promise<MangaDownloads> => {
 
 export const deleteDownloadedChapter = async (
   mangaId: string,
-  chapterId: string
+  chapterId: string,
 ): Promise<MangaDownloads> => {
   try {
     const path = `${RNFS.DocumentDirectoryPath}/manga/${mangaId}/${chapterId}`;
@@ -219,7 +252,10 @@ export const deleteDownloadedChapter = async (
         delete downloads[mangaId];
       }
 
-      await AsyncStorage.setItem(MANGA_DOWNLOADS_KEY, JSON.stringify(downloads));
+      await AsyncStorage.setItem(
+        MANGA_DOWNLOADS_KEY,
+        JSON.stringify(downloads),
+      );
     }
 
     return downloads;
@@ -230,7 +266,7 @@ export const deleteDownloadedChapter = async (
 };
 
 export const deleteDownloadedManga = async (
-  mangaId: string
+  mangaId: string,
 ): Promise<MangaDownloads> => {
   try {
     const path = `${RNFS.DocumentDirectoryPath}/manga/${mangaId}`;
@@ -276,7 +312,9 @@ export const getMangaFolderSize = async (mangaId: string): Promise<number> => {
 };
 
 export const formatBytes = (bytes: number): string => {
-  if (bytes === 0) {return '0 B';}
+  if (bytes === 0) {
+    return '0 B';
+  }
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));

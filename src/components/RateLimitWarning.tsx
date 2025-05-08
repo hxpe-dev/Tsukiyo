@@ -1,14 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import {View, Text, StyleSheet} from 'react-native';
+import {useTheme} from '../context/ThemeContext';
 
 export default function RateLimitWarning() {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>You are being rate limited. Please wait a minute.</Text>
+      <Text style={styles.text}>
+        You are being rate limited. Please wait a minute.
+      </Text>
     </View>
   );
 }

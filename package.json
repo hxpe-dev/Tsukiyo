@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "@openspacelabs/react-native-zoomable-view": "^2.4.2",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/image-editor": "^4.3.0",
@@ -17,6 +18,7 @@
     "@react-navigation/native-stack": "^7.3.10",
     "react": "19.0.0",
     "react-native": "0.79.1",
+    "react-native-background-fetch": "^4.2.8",
     "react-native-fs": "^2.20.0",
     "react-native-image-size": "file:./patched-packages/react-native-image-size",
     "react-native-safe-area-context": "^5.4.0",

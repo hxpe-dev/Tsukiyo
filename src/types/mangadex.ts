@@ -45,6 +45,7 @@ export interface MangaProgress {
 
 export interface MangaProgressEntry {
   mangaTitle: string;
+  mangaLang: string;
   mangaCover: string;
   chapterId: string;
   chapterNum: string;
@@ -67,6 +68,7 @@ export interface MangaDownloads {
 export interface MangaProgressItem {
   id: string;
   title: string;
+  lang: string;
   cover: string;
   chapterId: string;
   chapterNum: string;

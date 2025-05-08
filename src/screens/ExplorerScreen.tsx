@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -12,47 +12,52 @@ import {
   TouchableOpacity,
   ViewToken,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import HorizontalListDisplayer from '../components/HorizontalListDisplayer';
 import Card from '../components/Card';
-import { DisplayableManga, Manga } from '../types/mangadex';
-import { getLatestManga, searchManga, isApiRateLimited } from '../api/mangadex';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {DisplayableManga, Manga} from '../types/mangadex';
+import {getLatestManga, searchManga, isApiRateLimited} from '../api/mangadex';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../navigation/AppNavigator';
 import RateLimitWarning from '../components/RateLimitWarning';
 import Icon from 'react-native-vector-icons/Feather';
-import { useTheme } from '../context/ThemeContext';
+import {useTheme} from '../context/ThemeContext';
 import PageLoading from '../components/PageLoading';
+import {
+  getPlusEighteen,
+  getVerticalCardAnimations,
+} from '../utils/settingLoader';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 const SEARCH_CARD_MARGIN = 24;
 const SEARCH_CARD_SIZE = (width - SEARCH_CARD_MARGIN * 4) / 3;
 
 export default function ExplorerScreen() {
   const navigation = useNavigation<NavigationProp>();
 
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
   const [latestManga, setLatestManga] = useState<Manga[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] = useState(true);
+  const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
+    useState(true);
   const [plusEighteenEnabled, setPlusEighteenEnabled] = useState(true);
   const [hasSearched, setHasSearched] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem('vertical_card_animations').then((val) => {
-      if (val !== null) {setVerticalCardAnimationsEnabled(val === 'true');}
-    });
-    AsyncStorage.getItem('plus_eighteen').then((val) => {
-      if (val !== null) {setPlusEighteenEnabled(val === 'true');}
-      loadLatestManga(val ? val === 'true' : undefined);
-    });
+    async function loadSetting() {
+      setVerticalCardAnimationsEnabled(await getVerticalCardAnimations());
+      const plusEighteen = await getPlusEighteen();
+      setPlusEighteenEnabled(plusEighteen);
+      loadLatestManga(plusEighteen);
+    }
+
+    loadSetting();
   }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -91,7 +96,9 @@ export default function ExplorerScreen() {
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) {return;}
+    if (!searchQuery.trim()) {
+      return;
+    }
     if (isApiRateLimited()) {
       setRateLimited(true);
       return;
@@ -99,7 +106,11 @@ export default function ExplorerScreen() {
     setHasSearched(true);
     setIsSearching(true);
     try {
-      const results = await searchManga(searchQuery.trim(), 30, plusEighteenEnabled);
+      const results = await searchManga(
+        searchQuery.trim(),
+        30,
+        plusEighteenEnabled,
+      );
       setSearchResults(results);
     } catch (error) {
       if (error instanceof Error && error.message === 'RATE_LIMITED') {
@@ -112,11 +123,14 @@ export default function ExplorerScreen() {
     }
   };
 
-  const handleNavigateToInfo = useCallback((item: DisplayableManga) => {
-    if ('attributes' in item) {
-      navigation.navigate('Info', { item });
-    }
-  }, [navigation]);
+  const handleNavigateToInfo = useCallback(
+    (item: DisplayableManga) => {
+      if ('attributes' in item) {
+        navigation.navigate('Info', {item});
+      }
+    },
+    [navigation],
+  );
 
   const handleCancelSearch = () => {
     setIsSearching(false);
@@ -125,54 +139,65 @@ export default function ExplorerScreen() {
     setHasSearched(false);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    setViewableItems(viewableItems);
-  }, []);
+  const onViewableItemsChanged = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    ({viewableItems}: {viewableItems: ViewToken[]}) => {
+      setViewableItems(viewableItems);
+    },
+    [],
+  );
 
   const visibleIdSet = useMemo(() => {
     const set = new Set<string>();
-    viewableItems.forEach((vi) => set.add(vi.item.id));
+    viewableItems.forEach(vi => set.add(vi.item.id));
     return set;
   }, [viewableItems]);
 
-  const renderSearchItem = useCallback(({ item, index }: { item: Manga; index: number }) => {
-    const isVisible = verticalCardAnimationsEnabled ? visibleIdSet.has(item.id) : true;
-    const paddingLeft = index % 3 === 0 ? SEARCH_CARD_MARGIN : SEARCH_CARD_MARGIN / 2;
-    const paddingRight = (index + 1) % 3 === 0 ? SEARCH_CARD_MARGIN : SEARCH_CARD_MARGIN / 2;
+  const renderSearchItem = useCallback(
+    ({item, index}: {item: Manga; index: number}) => {
+      const isVisible = verticalCardAnimationsEnabled
+        ? visibleIdSet.has(item.id)
+        : true;
+      const paddingLeft =
+        index % 3 === 0 ? SEARCH_CARD_MARGIN : SEARCH_CARD_MARGIN / 2;
+      const paddingRight =
+        (index + 1) % 3 === 0 ? SEARCH_CARD_MARGIN : SEARCH_CARD_MARGIN / 2;
 
-    return (
-      <Card
-        item={item}
-        isVisible={isVisible}
-        size={SEARCH_CARD_SIZE}
-        paddingLeft={paddingLeft}
-        paddingRight={paddingRight}
-        paddingTop={SEARCH_CARD_MARGIN / 2}
-        paddingBottom={SEARCH_CARD_MARGIN / 2}
-        onClick={() => handleNavigateToInfo(item)}
-        onLongPress={() => handleNavigateToInfo(item)}
-      />
-    );
-  }, [verticalCardAnimationsEnabled, handleNavigateToInfo, visibleIdSet]);
+      return (
+        <Card
+          item={item}
+          isVisible={isVisible}
+          size={SEARCH_CARD_SIZE}
+          paddingLeft={paddingLeft}
+          paddingRight={paddingRight}
+          paddingTop={SEARCH_CARD_MARGIN / 2}
+          paddingBottom={SEARCH_CARD_MARGIN / 2}
+          onClick={() => handleNavigateToInfo(item)}
+          onLongPress={() => handleNavigateToInfo(item)}
+        />
+      );
+    },
+    [verticalCardAnimationsEnabled, handleNavigateToInfo, visibleIdSet],
+  );
 
   if (loading) {
-    return (
-      <PageLoading/>
-    );
+    return <PageLoading />;
   }
 
   return (
     <View style={styles.container}>
       <ScrollView
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
-        keyboardShouldPersistTaps="handled"
-      >
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
+        keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.headerText}>Manga Explorer</Text>
           <View style={styles.searchContainer}>
             {(isSearching || hasSearched) && (
-              <TouchableOpacity onPress={handleCancelSearch} style={styles.cancelButton}>
+              <TouchableOpacity
+                onPress={handleCancelSearch}
+                style={styles.cancelButton}>
                 <Icon name="chevron-left" size={24} color={theme.button} />
               </TouchableOpacity>
             )}
@@ -189,14 +214,18 @@ export default function ExplorerScreen() {
         </View>
 
         {isSearching ? (
-          // eslint-disable-next-line react-native/no-inline-styles
-          <ActivityIndicator style={{ marginTop: 32 }} size="small" color={theme.button} />
+          <ActivityIndicator
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={{marginTop: 32}}
+            size="small"
+            color={theme.button}
+          />
         ) : hasSearched ? (
           searchResults.length > 0 ? (
             <FlatList
               ref={flatListRef}
               data={searchResults}
-              keyExtractor={(item) => item.id}
+              keyExtractor={item => item.id}
               numColumns={3}
               // PERFORMANCE SETTINGS START
               initialNumToRender={12} // render only x items initially
@@ -208,11 +237,13 @@ export default function ExplorerScreen() {
               contentContainerStyle={styles.grid}
               columnWrapperStyle={styles.row}
               onViewableItemsChanged={onViewableItemsChanged}
-              viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
+              viewabilityConfig={{viewAreaCoveragePercentThreshold: 0}}
               scrollEnabled={false}
             />
           ) : (
-            <Text style={styles.noResultsText}>No results for your search.</Text>
+            <Text style={styles.noResultsText}>
+              No results for your search.
+            </Text>
           )
         ) : (
           latestManga.length > 0 && (

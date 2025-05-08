@@ -1,33 +1,29 @@
-import React, { useCallback, useState } from 'react';
-import {
-  Text,
-  ScrollView,
-  StyleSheet,
-  RefreshControl,
-} from 'react-native';
+import React, {useCallback, useState} from 'react';
+import {Text, ScrollView, StyleSheet, RefreshControl} from 'react-native';
 import HorizontalListDisplayer from '../components/HorizontalListDisplayer';
-import { DisplayableManga, Manga, MangaProgressItem } from '../types/mangadex';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import {
-  getAllReadingProgress,
-  removeReadingProgress,
-} from '../utils/storage';
+import {DisplayableManga, Manga, MangaProgressItem} from '../types/mangadex';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {getAllReadingProgress, removeReadingProgress} from '../utils/storage';
 import MangaOptionsModal from '../components/MangaOptionsModal';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
-import { useTheme } from '../context/ThemeContext';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../navigation/AppNavigator';
+import {useTheme} from '../context/ThemeContext';
 import PageLoading from '../components/PageLoading';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const [currentlyReadingList, setCurrentlyReadingList] = useState<MangaProgressItem[]>([]);
+  const [currentlyReadingList, setCurrentlyReadingList] = useState<
+    MangaProgressItem[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedManga, setSelectedManga] = useState<MangaProgressItem | null>(null);
+  const [selectedManga, setSelectedManga] = useState<MangaProgressItem | null>(
+    null,
+  );
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
   const loadData = async () => {
@@ -46,7 +42,7 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, []),
   );
 
   const onRefresh = () => {
@@ -56,12 +52,21 @@ export default function HomeScreen() {
 
   const handleNavigateToReader = (item: DisplayableManga) => {
     if ('chapterId' in item) {
-      navigation.navigate('Reader', { mangaId: item.id, mangaTitle: item.title, mangaCover: item.cover, chapterId: item.chapterId, chapters: item.chapters, page: item.page, externalUrl: item.externalUrl });
+      navigation.navigate('Reader', {
+        mangaId: item.id,
+        mangaTitle: item.title,
+        mangaLang: item.lang,
+        mangaCover: item.cover,
+        chapterId: item.chapterId,
+        chapters: item.chapters,
+        page: item.page,
+        externalUrl: item.externalUrl,
+      });
     }
   };
 
   const handleNavigateToInfo = (item: Manga | MangaProgressItem) => {
-    navigation.navigate('Info', { item });
+    navigation.navigate('Info', {item});
   };
 
   const handleCardLongPress = (item: DisplayableManga) => {
@@ -95,14 +100,14 @@ export default function HomeScreen() {
 
   return (
     <ScrollView
+      style={styles.scrollView}
       contentContainerStyle={styles.scrollView}
-      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
-    >
-      <Text style={styles.title}>
-        Tsukiyo
-      </Text>
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+      }>
+      <Text style={styles.title}>Tsukiyo</Text>
       {loading ? (
-        <PageLoading/>
+        <PageLoading />
       ) : (
         <>
           {currentlyReadingList.length > 0 && (

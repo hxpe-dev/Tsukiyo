@@ -1,34 +1,59 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import SettingsScreen from '../screens/SettingsScreen';
 import InfoScreen from '../screens/InfoScreen';
 import ReaderScreen from '../screens/ReaderScreen';
-import { MainStackParamList } from '../screens/MainLayout';
+import {MainStackParamList} from '../screens/MainLayout';
 import MainLayout from '../screens/MainLayout';
-import { Chapter, Manga } from '../types/mangadex';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../context/ThemeContext';
+import {Chapter, Manga} from '../types/mangadex';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useTheme} from '../context/ThemeContext';
 
 export type RootStackParamList = {
-  Main: { screen?: keyof MainStackParamList };
+  Main: {screen?: keyof MainStackParamList};
   Settings: undefined;
-  Info: { item: Manga | { id: string } };
-  Reader: { mangaId: string, mangaTitle: string, mangaCover: string, chapterId: string, chapters: Chapter[], page: number, externalUrl?: string | null };
+  Info: {item: Manga | {id: string}};
+  Reader: {
+    mangaId: string;
+    mangaTitle: string;
+    mangaLang: string;
+    mangaCover: string;
+    chapterId: string;
+    chapters: Chapter[];
+    page: number;
+    externalUrl?: string | null;
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   // All screens where navbar doesn't appear
   return (
-    // eslint-disable-next-line react-native/no-inline-styles
-    <SafeAreaView style={{flex: 1, backgroundColor: theme.background}} edges={['top', 'bottom', 'left', 'right']}>
-      <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
+    <SafeAreaView
+      // eslint-disable-next-line react-native/no-inline-styles
+      style={{flex: 1, backgroundColor: theme.background}}
+      edges={['top', 'bottom', 'left', 'right']}>
+      <Stack.Navigator
+        initialRouteName="Main"
+        screenOptions={{headerShown: false}}>
         <Stack.Screen name="Main" component={MainLayout} />
-        <Stack.Screen name="Settings" component={SettingsScreen} options={{presentation: 'modal'}}/>
-        <Stack.Screen name="Info" component={InfoScreen} options={{presentation: 'modal'}}/>
-        <Stack.Screen name="Reader" component={ReaderScreen} options={{presentation: 'modal'}}/>
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="Info"
+          component={InfoScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="Reader"
+          component={ReaderScreen}
+          options={{presentation: 'modal'}}
+        />
       </Stack.Navigator>
     </SafeAreaView>
   );

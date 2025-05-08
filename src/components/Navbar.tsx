@@ -1,10 +1,17 @@
-import React, { useRef/*, useState */ } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Animated, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
-import { MainStackParamList } from '../screens/MainLayout';
-import { useTheme } from '../context/ThemeContext';
+import React, {useRef /*, useState */} from 'react';
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Animated,
+  Dimensions,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../navigation/AppNavigator';
+import {MainStackParamList} from '../screens/MainLayout';
+import {useTheme} from '../context/ThemeContext';
 
 const screenWidth = Dimensions.get('window').width;
 const BUTTON_MARGIN_HORIZONTAL = 10;
@@ -12,13 +19,18 @@ const BUTTON_COUNT = 3;
 const NAVBAR_SIDE_MARGIN = 24; // Same as left/right in navbar style
 
 // Calculation for button width based on screen size and margins
-const buttonWidth = (screenWidth - NAVBAR_SIDE_MARGIN * 2 - BUTTON_MARGIN_HORIZONTAL * 2 * BUTTON_COUNT) / BUTTON_COUNT;
+const buttonWidth =
+  (screenWidth -
+    NAVBAR_SIDE_MARGIN * 2 -
+    BUTTON_MARGIN_HORIZONTAL * 2 * BUTTON_COUNT) /
+  BUTTON_COUNT;
 const sliderWidth = 50;
 
 export default function Navbar() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const { theme, isDark } = useTheme();
+  const {theme, isDark} = useTheme();
   const styles = useThemedStyles(theme, isDark);
 
   // currentScreen works but is not used for the moment
@@ -26,7 +38,7 @@ export default function Navbar() {
   const translateX = useRef(new Animated.Value(0)).current;
 
   const handleNavigate = (screen: keyof MainStackParamList, index: number) => {
-    navigation.navigate('Main', { screen });
+    navigation.navigate('Main', {screen});
     // setCurrentScreen(screen);
 
     Animated.spring(translateX, {
@@ -42,7 +54,7 @@ export default function Navbar() {
         style={[
           styles.slider,
           {
-            transform: [{ translateX }],
+            transform: [{translateX}],
           },
         ]}
       />
@@ -50,31 +62,22 @@ export default function Navbar() {
       <TouchableOpacity
         onPress={() => handleNavigate('Explorer', 0)}
         style={styles.button}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.text}>
-          Explorer
-        </Text>
+        activeOpacity={0.7}>
+        <Text style={styles.text}>Explorer</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={() => handleNavigate('Home', 1)}
         style={styles.button}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.textCenter}>
-          Home
-        </Text>
+        activeOpacity={0.7}>
+        <Text style={styles.textCenter}>Home</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={() => handleNavigate('Profile', 2)}
         style={styles.button}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.text}>
-          Profile
-        </Text>
+        activeOpacity={0.7}>
+        <Text style={styles.text}>Profile</Text>
       </TouchableOpacity>
     </View>
   );
@@ -94,7 +97,7 @@ const useThemedStyles = (theme: any, isDark: any) =>
       justifyContent: 'space-around',
       alignItems: 'center',
       shadowColor: theme.shadow,
-      shadowOffset: { width: 0, height: 6 },
+      shadowOffset: {width: 0, height: 6},
       shadowOpacity: 0.1,
       shadowRadius: 8,
       elevation: isDark ? 1 : 10, // was 10

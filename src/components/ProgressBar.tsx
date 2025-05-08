@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import {View, StyleSheet, Dimensions, TouchableOpacity} from 'react-native';
+import {useTheme} from '../context/ThemeContext';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -15,28 +15,32 @@ const ProgressBar = ({
   totalPages: number;
   onPressPage: (pageIndex: number) => void;
 }) => {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
-  if (totalPages === 0) {return null;}
+  if (totalPages === 0) {
+    return null;
+  }
 
   const barWidth = screenWidth;
   const blockWidth = barWidth / totalPages;
 
   return (
-    <View style={[styles.progressBarContainer, { height }]}>
-      {Array.from({ length: totalPages }).map((_, index) => (
+    <View style={[styles.progressBarContainer, {height}]}>
+      {Array.from({length: totalPages}).map((_, index) => (
         <TouchableOpacity
           key={index}
-          style={{ width: blockWidth }}
+          style={{width: blockWidth}}
           onPress={() => onPressPage(index)}
-          activeOpacity={0.7}
-        >
+          activeOpacity={0.7}>
           <View
             style={[
               styles.progressBlock,
               {
-                backgroundColor: index <= currentPage ? theme.textSecondary : theme.elevatedBackground,
+                backgroundColor:
+                  index <= currentPage
+                    ? theme.textSecondary
+                    : theme.elevatedBackground,
               },
             ]}
           />

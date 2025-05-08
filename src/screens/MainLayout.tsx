@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import Navbar from '../components/Navbar';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeScreen from './HomeScreen';
 import ExplorerScreen from './ExplorerScreen';
 import ProfileScreen from './ProfileScreen';
-import { useTheme } from '../context/ThemeContext';
+import {useTheme} from '../context/ThemeContext';
 
 export type MainStackParamList = {
   Home: undefined;
@@ -16,7 +16,7 @@ export type MainStackParamList = {
 const MainStack = createNativeStackNavigator<MainStackParamList>();
 
 export default function MainLayout() {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
   // All screens where navbar appears
@@ -25,8 +25,7 @@ export default function MainLayout() {
       <View style={styles.content}>
         <MainStack.Navigator
           initialRouteName="Home"
-          screenOptions={{ headerShown: false }}
-        >
+          screenOptions={{headerShown: false}}>
           <MainStack.Screen name="Home" component={HomeScreen} />
           <MainStack.Screen name="Explorer" component={ExplorerScreen} />
           <MainStack.Screen name="Profile" component={ProfileScreen} />
@@ -38,7 +37,7 @@ export default function MainLayout() {
 }
 
 const useThemedStyles = (theme: any) =>
-   StyleSheet.create({
+  StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.background,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Modal,
   View,
@@ -8,8 +8,8 @@ import {
   StyleSheet,
   Animated,
 } from 'react-native';
-import { MangaProgressItem } from '../types/mangadex';
-import { useTheme } from '../context/ThemeContext';
+import {MangaProgressItem} from '../types/mangadex';
+import {useTheme} from '../context/ThemeContext';
 
 type Props = {
   visible: boolean;
@@ -28,7 +28,7 @@ const MangaOptionsModal = ({
   onInfo,
   onRemove,
 }: Props) => {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
   const [slideAnim] = useState(new Animated.Value(100)); // Initial position off-screen
@@ -69,8 +69,7 @@ const MangaOptionsModal = ({
       animationType="none" // No animation for the overlay
       transparent
       visible={visible}
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback onPress={() => {}}>
@@ -78,11 +77,10 @@ const MangaOptionsModal = ({
               style={[
                 styles.sheet,
                 {
-                  transform: [{ translateY: slideAnim }], // Apply slide animation to the content
+                  transform: [{translateY: slideAnim}], // Apply slide animation to the content
                   opacity: opacityAnim, // Apply fade-in/fade-out effect
                 },
-              ]}
-            >
+              ]}>
               <Text style={styles.title}>{manga?.title}</Text>
 
               <TouchableOpacity style={styles.button} onPress={onContinue}>
@@ -95,8 +93,7 @@ const MangaOptionsModal = ({
 
               <TouchableOpacity
                 style={[styles.button, styles.removeButton]}
-                onPress={onRemove}
-              >
+                onPress={onRemove}>
                 <Text style={[styles.buttonText, styles.removeText]}>
                   Remove from Reading
                 </Text>

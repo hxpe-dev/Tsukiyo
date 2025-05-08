@@ -1,3 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import notifee from '@notifee/react-native';
+import {MangaProgress} from '../types/mangadex';
+import {getLanguageName} from '../utils/getLanguageName';
+
+const STORAGE_KEY = '@manga_progress';
+
 const BASE_URL = 'https://api.mangadex.org';
 
 let isRateLimited = false;
@@ -12,7 +19,9 @@ function buildUrl(endpoint: string, params?: Record<string, any>): string {
     query = Object.entries(params)
       .flatMap(([key, value]) => {
         if (Array.isArray(value)) {
-          return value.map(v => `${encodeURIComponent(key)}[]=${encodeURIComponent(v)}`);
+          return value.map(
+            v => `${encodeURIComponent(key)}[]=${encodeURIComponent(v)}`,
+          );
         } else if (typeof value === 'object' && value !== null) {
           return Object.entries(value).map(([nestedKey, nestedValue]) => {
             if (
@@ -20,7 +29,9 @@ function buildUrl(endpoint: string, params?: Record<string, any>): string {
               typeof nestedValue === 'number' ||
               typeof nestedValue === 'boolean'
             ) {
-              return `${encodeURIComponent(`${key}[${nestedKey}]`)}=${encodeURIComponent(nestedValue)}`;
+              return `${encodeURIComponent(
+                `${key}[${nestedKey}]`,
+              )}=${encodeURIComponent(nestedValue)}`;
             }
             return ''; // Or throw an error if unexpected type
           });
@@ -34,7 +45,11 @@ function buildUrl(endpoint: string, params?: Record<string, any>): string {
 }
 
 // Generic fetch wrapper
-export const fetchFromApi = async (endpoint: string, params?: Record<string, any>, urlAddon = '') => {
+export const fetchFromApi = async (
+  endpoint: string,
+  params?: Record<string, any>,
+  urlAddon = '',
+) => {
   const now = Date.now();
   if (isRateLimited && now < rateLimitResetTime) {
     throw new Error('RATE_LIMITED');
@@ -57,17 +72,21 @@ export const fetchFromApi = async (endpoint: string, params?: Record<string, any
   return response.json();
 };
 
-export const searchManga = async (title: string, limit = 10, plusEighteen = true) => {
+export const searchManga = async (
+  title: string,
+  limit = 10,
+  plusEighteen = true,
+) => {
   const data = await fetchFromApi(
     '/manga',
     {
       title,
       limit,
-      order: { relevance: 'desc' },
+      order: {relevance: 'desc'},
       contentRating: plusEighteen ? [] : ['safe', 'suggestive'],
       includes: ['cover_art'],
     },
-    `?_=${Date.now()}`
+    `?_=${Date.now()}`,
   );
 
   const mangaList = data.data;
@@ -75,10 +94,12 @@ export const searchManga = async (title: string, limit = 10, plusEighteen = true
   const enrichedMangaList = await Promise.all(
     mangaList.map(async (manga: any) => {
       const coverRel = manga.relationships?.find(
-        (rel: any) => rel.type === 'cover_art'
+        (rel: any) => rel.type === 'cover_art',
       );
 
-      if (!coverRel) {return manga;}
+      if (!coverRel) {
+        return manga;
+      }
 
       try {
         const coverData = await fetchFromApi(`/cover/${coverRel.id}`);
@@ -92,15 +113,20 @@ export const searchManga = async (title: string, limit = 10, plusEighteen = true
         console.error(`Failed to fetch cover for manga ID ${manga.id}`, err);
         return manga;
       }
-    })
+    }),
   );
   return enrichedMangaList;
 };
 
-export const getMangaChapters = async (mangaId: string, language: string, page: number = 1, limit: number = 100) => {
+export const getMangaChapters = async (
+  mangaId: string,
+  language: string,
+  page: number = 1,
+  limit: number = 100,
+) => {
   const data = await fetchFromApi(`/manga/${mangaId}/feed`, {
     translatedLanguage: [language], // Empty array means all available languages
-    order: { chapter: 'asc' },
+    order: {chapter: 'asc'},
     limit: limit, // Number of results per page
     offset: (page - 1) * limit, // Calculate offset based on page number
   });
@@ -111,15 +137,18 @@ export const getMangaChapters = async (mangaId: string, language: string, page: 
 export const getChapterImages = async (chapterId: string) => {
   const data = await fetchFromApi(`/at-home/server/${chapterId}`);
 
-  const { baseUrl, chapter } = data;
+  const {baseUrl, chapter} = data;
   const imageUrls = chapter.data.map(
-    (filename: string) => `${baseUrl}/data/${chapter.hash}/${filename}`
+    (filename: string) => `${baseUrl}/data/${chapter.hash}/${filename}`,
   );
 
   return imageUrls;
 };
 
-export const getLatestManga = async (limit: number = 10, plusEighteen = true) => {
+export const getLatestManga = async (
+  limit: number = 10,
+  plusEighteen = true,
+) => {
   try {
     return searchManga('', limit, plusEighteen);
   } catch (error) {
@@ -128,7 +157,9 @@ export const getLatestManga = async (limit: number = 10, plusEighteen = true) =>
   }
 };
 
-export const fetchCoverFileName = async (coverId: string): Promise<string | null> => {
+export const fetchCoverFileName = async (
+  coverId: string,
+): Promise<string | null> => {
   try {
     const coverData = await fetchFromApi(`/cover/${coverId}`);
     return coverData.data?.attributes?.fileName || null;
@@ -146,10 +177,12 @@ export const getMangaById = async (mangaId: string) => {
   const manga = data.data;
 
   const coverRel = manga.relationships?.find(
-    (rel: any) => rel.type === 'cover_art'
+    (rel: any) => rel.type === 'cover_art',
   );
 
-  if (!coverRel) {return manga;}
+  if (!coverRel) {
+    return manga;
+  }
 
   try {
     const coverData = await fetchFromApi(`/cover/${coverRel.id}`);
@@ -162,5 +195,75 @@ export const getMangaById = async (mangaId: string) => {
   } catch (err) {
     console.error(`Failed to fetch cover for manga ID ${manga.id}`, err);
     return manga;
+  }
+};
+
+export const checkForNewChapters = async () => {
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+
+    const progress: MangaProgress = JSON.parse(raw);
+    const updatedProgress: MangaProgress = {...progress};
+
+    for (const mangaId of Object.keys(progress)) {
+      const entry = progress[mangaId];
+
+      // If there's no chapter ID or last read, continue to next manga
+      if (!entry.chapterId) {
+        continue;
+      }
+
+      // Get the chapter number of the last read chapter
+      const lastKnownChapterCount = entry.chapters.length;
+
+      // Get the most recently published chapter (English)
+      const response = await fetchFromApi(`/manga/${mangaId}/feed`, {
+        translatedLanguage: [entry.mangaLang],
+        limit: 1,
+        offset: lastKnownChapterCount,
+        order: {publishAt: 'asc'},
+      });
+
+      const latest = response?.data?.[0];
+      if (!latest) {
+        continue;
+      }
+
+      const publishAt = latest.attributes?.publishAt;
+      const latestChapterNum = latest.attributes?.chapter ?? '?';
+
+      const hasNewerChapter =
+        !entry.chapters[lastKnownChapterCount - 1].attributes.publishAt ||
+        new Date(publishAt) >
+          new Date(
+            entry.chapters[lastKnownChapterCount - 1].attributes.publishAt,
+          );
+
+      if (hasNewerChapter) {
+        // Send Notifee notification
+        const language = getLanguageName(entry.mangaLang, true);
+        await notifee.displayNotification({
+          title: `New Chapter: ${entry.mangaTitle}`,
+          body: `Chapter ${latestChapterNum} is out in ${language}!`,
+          android: {
+            channelId: 'new-chapters', // make sure this channel is created elsewhere
+            smallIcon: 'ic_launcher', // replace with your app icon
+          },
+        });
+
+        // Update stored progress
+        updatedProgress[mangaId] = {
+          ...entry,
+          chapters: [...entry.chapters, latest],
+        };
+      }
+    }
+
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProgress));
+  } catch (err) {
+    console.error('Failed to check for new chapters:', err);
   }
 };

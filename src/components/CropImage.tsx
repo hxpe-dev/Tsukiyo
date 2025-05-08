@@ -1,5 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Image, Dimensions, ActivityIndicator } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  StyleSheet,
+  Image,
+  Dimensions,
+  ActivityIndicator,
+} from 'react-native';
 import ImageEditor from '@react-native-community/image-editor';
 import ImageSize from 'react-native-image-size';
 
@@ -10,15 +16,16 @@ interface CropImageProps {
   maxSegmentHeight: number;
 }
 
-const CropImage: React.FC<CropImageProps> = ({ uri, maxSegmentHeight }) => {
+const CropImage: React.FC<CropImageProps> = ({uri, maxSegmentHeight}) => {
   const [croppedUris, setCroppedUris] = useState<string[] | null>(null);
-  const [croppedUrisHeight, setCroppedUrisHeight] = useState<number[]>([maxSegmentHeight]);
+  const [croppedUrisHeight, setCroppedUrisHeight] = useState<number[]>([
+    maxSegmentHeight,
+  ]);
 
   useEffect(() => {
-    console.log('LOADING');
     const loadImage = async () => {
       try {
-        const { width, height } = await ImageSize.getSize(uri);
+        const {width, height} = await ImageSize.getSize(uri);
         const scaleFactor = screenWidth / width;
         const numSegments = Math.ceil(height / maxSegmentHeight);
 
@@ -30,8 +37,8 @@ const CropImage: React.FC<CropImageProps> = ({ uri, maxSegmentHeight }) => {
           const segmentHeight = Math.min(maxSegmentHeight, height - top);
 
           const cropData = {
-            offset: { x: 0, y: top },
-            size: { width, height: segmentHeight },
+            offset: {x: 0, y: top},
+            size: {width, height: segmentHeight},
           };
 
           try {
@@ -67,7 +74,7 @@ const CropImage: React.FC<CropImageProps> = ({ uri, maxSegmentHeight }) => {
         return (
           <Image
             key={index}
-            source={{ uri: segmentUri }}
+            source={{uri: segmentUri}}
             style={[styles.imageSegment, {height: segmentHeight}]}
           />
         );

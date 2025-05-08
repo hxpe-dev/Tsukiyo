@@ -1,35 +1,70 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Switch, TextInput } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet, Switch, TextInput} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme } from '../context/ThemeContext';
+import {useTheme} from '../context/ThemeContext';
 
 export default function SettingsScreen() {
-  const { theme, toggleTheme, isDark } = useTheme();
+  const {theme, toggleTheme, isDark} = useTheme();
   const styles = useThemedStyles(theme);
 
-  const [horizontalCardAnimationsEnabled, setHorizontalCardAnimationsEnabled] = useState(true);
-  const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] = useState(true);
+  const [horizontalCardAnimationsEnabled, setHorizontalCardAnimationsEnabled] =
+    useState(true);
+  const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
+    useState(true);
   const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
   const [plusEighteenEnabled, setPlusEighteenEnabled] = useState(true);
   const [readerOffset, setReaderOffset] = useState('0');
   const [webtoonSegmentHeight, setWebtoonSegmentHeight] = useState('1000');
+  const [newChapterCheckFrequency, setNewChapterCheckFrequency] =
+    useState('180');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showRestartWarning, setShowRestartWarning] = useState(false);
 
   useEffect(() => {
     const loadSettings = async () => {
-      const horizontalCardAnimationsSetting = await AsyncStorage.getItem('horizontal_card_animations');
-      const verticalCardAnimationsSetting = await AsyncStorage.getItem('vertical_card_animations');
-      const readerAnimationsSetting = await AsyncStorage.getItem('reader_animations');
+      const horizontalCardAnimationsSetting = await AsyncStorage.getItem(
+        'horizontal_card_animations',
+      );
+      const verticalCardAnimationsSetting = await AsyncStorage.getItem(
+        'vertical_card_animations',
+      );
+      const readerAnimationsSetting = await AsyncStorage.getItem(
+        'reader_animations',
+      );
       const plusEighteenSetting = await AsyncStorage.getItem('plus_eighteen');
       const readerOffsetSetting = await AsyncStorage.getItem('reader_offset');
-      const webtoonSegmentHeightSetting = await AsyncStorage.getItem('webtoon_segment_height');
+      const webtoonSegmentHeightSetting = await AsyncStorage.getItem(
+        'webtoon_segment_height',
+      );
+      const newChapterCheckFrequencySetting = await AsyncStorage.getItem(
+        'new_chapter_check_frequency',
+      );
 
-      if (horizontalCardAnimationsSetting !== null) {setHorizontalCardAnimationsEnabled(horizontalCardAnimationsSetting === 'true');}
-      if (verticalCardAnimationsSetting !== null) {setVerticalCardAnimationsEnabled(verticalCardAnimationsSetting === 'true');}
-      if (readerAnimationsSetting !== null) {setReaderAnimationsEnabled(readerAnimationsSetting === 'true');}
-      if (plusEighteenSetting !== null) {setPlusEighteenEnabled(plusEighteenSetting === 'true');}
-      if (readerOffsetSetting !== null) {setReaderOffset(readerOffsetSetting);}
-      if (webtoonSegmentHeightSetting !== null) {setWebtoonSegmentHeight(webtoonSegmentHeightSetting);}
+      if (horizontalCardAnimationsSetting !== null) {
+        setHorizontalCardAnimationsEnabled(
+          horizontalCardAnimationsSetting === 'true',
+        );
+      }
+      if (verticalCardAnimationsSetting !== null) {
+        setVerticalCardAnimationsEnabled(
+          verticalCardAnimationsSetting === 'true',
+        );
+      }
+      if (readerAnimationsSetting !== null) {
+        setReaderAnimationsEnabled(readerAnimationsSetting === 'true');
+      }
+      if (plusEighteenSetting !== null) {
+        setPlusEighteenEnabled(plusEighteenSetting === 'true');
+      }
+      if (readerOffsetSetting !== null) {
+        setReaderOffset(readerOffsetSetting);
+      }
+      if (webtoonSegmentHeightSetting !== null) {
+        setWebtoonSegmentHeight(webtoonSegmentHeightSetting);
+      }
+      if (newChapterCheckFrequencySetting !== null) {
+        setNewChapterCheckFrequency(newChapterCheckFrequencySetting);
+      }
     };
 
     loadSettings();
@@ -39,7 +74,6 @@ export default function SettingsScreen() {
     const newValue = !horizontalCardAnimationsEnabled;
     setHorizontalCardAnimationsEnabled(newValue);
     await AsyncStorage.setItem('horizontal_card_animations', String(newValue));
-    setShowRestartWarning(true);
   };
 
   const toggleVerticalCardAnimations = async () => {
@@ -76,31 +110,68 @@ export default function SettingsScreen() {
     }
   };
 
+  const updateNewChapterCheckFrequency = async (value: string) => {
+    // Only allow numeric input
+    if (/^\d*$/.test(value)) {
+      setNewChapterCheckFrequency(value);
+      await AsyncStorage.setItem('new_chapter_check_frequency', value);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.settingRow}>
         <Text style={styles.text}>Dark Mode</Text>
-        <Switch value={isDark} onValueChange={toggleTheme} />
+        <Switch
+          value={isDark}
+          onValueChange={toggleTheme}
+          thumbColor={isDark ? theme.button : theme.error}
+          trackColor={{false: theme.border, true: theme.border}}
+        />
       </View>
 
       <View style={styles.settingRow}>
         <Text style={styles.text}>Horizontal Card Animations</Text>
-        <Switch value={horizontalCardAnimationsEnabled} onValueChange={toggleHorizontalCardAnimations} />
+        <Switch
+          value={horizontalCardAnimationsEnabled}
+          onValueChange={toggleHorizontalCardAnimations}
+          thumbColor={
+            horizontalCardAnimationsEnabled ? theme.button : theme.error
+          }
+          trackColor={{false: theme.border, true: theme.border}}
+        />
       </View>
 
       <View style={styles.settingRow}>
         <Text style={styles.text}>Vertical Card Animations</Text>
-        <Switch value={verticalCardAnimationsEnabled} onValueChange={toggleVerticalCardAnimations} />
+        <Switch
+          value={verticalCardAnimationsEnabled}
+          onValueChange={toggleVerticalCardAnimations}
+          thumbColor={
+            verticalCardAnimationsEnabled ? theme.button : theme.error
+          }
+          trackColor={{false: theme.border, true: theme.border}}
+        />
       </View>
 
       <View style={styles.settingRow}>
         <Text style={styles.text}>Reader Animations</Text>
-        <Switch value={readerAnimationsEnabled} onValueChange={toggleReaderAnimations} />
+        <Switch
+          value={readerAnimationsEnabled}
+          onValueChange={toggleReaderAnimations}
+          thumbColor={readerAnimationsEnabled ? theme.button : theme.error}
+          trackColor={{false: theme.border, true: theme.border}}
+        />
       </View>
 
       <View style={styles.settingRow}>
         <Text style={styles.text}>+18 Content</Text>
-        <Switch value={plusEighteenEnabled} onValueChange={togglePlusEighteen} />
+        <Switch
+          value={plusEighteenEnabled}
+          onValueChange={togglePlusEighteen}
+          thumbColor={plusEighteenEnabled ? theme.button : theme.error}
+          trackColor={{false: theme.border, true: theme.border}}
+        />
       </View>
 
       <View style={styles.settingRow}>
@@ -120,6 +191,16 @@ export default function SettingsScreen() {
           keyboardType="numeric"
           value={webtoonSegmentHeight}
           onChangeText={updateWebtoonSegmentHeight}
+        />
+      </View>
+
+      <View style={styles.settingRow}>
+        <Text style={styles.text}>New Chapter Check Frequency</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          value={newChapterCheckFrequency}
+          onChangeText={updateNewChapterCheckFrequency}
         />
       </View>
 

@@ -1,9 +1,9 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { DisplayableManga } from '../types/mangadex';
+import React, {useCallback, useMemo, useState, useEffect} from 'react';
+import {View, Text, FlatList, StyleSheet} from 'react-native';
+import {DisplayableManga} from '../types/mangadex';
 import Card from './Card';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme } from '../context/ThemeContext';
+import {useTheme} from '../context/ThemeContext';
+import {getHorizontalCardAnimations} from '../utils/settingLoader';
 
 interface Props {
   title: string;
@@ -12,21 +12,28 @@ interface Props {
   onCardLongPress: (item: DisplayableManga) => void;
 }
 
-export default function HorizontalListDisplayer({ title, list, onCardClick, onCardLongPress }: Props) {
-  const { theme } = useTheme();
+export default function HorizontalListDisplayer({
+  title,
+  list,
+  onCardClick,
+  onCardLongPress,
+}: Props) {
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
   const [viewableItems, setViewableItems] = useState<any[]>([]); // Store visible items
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
   useEffect(() => {
-    AsyncStorage.getItem('horizontal_card_animations').then((val) => {
-      if (val !== null) {setAnimationsEnabled(val === 'true');}
-    });
+    async function loadSetting() {
+      setAnimationsEnabled(await getHorizontalCardAnimations());
+    }
+
+    loadSetting();
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
-  const onViewableItemsChanged = ({ viewableItems }: any) => {
+  const onViewableItemsChanged = ({viewableItems}: any) => {
     if (viewableItems) {
       setViewableItems(viewableItems); // Update only if viewableItems is not undefined
     }
@@ -34,27 +41,36 @@ export default function HorizontalListDisplayer({ title, list, onCardClick, onCa
 
   const visibleIdSet = useMemo(() => {
     const set = new Set<string>();
-    viewableItems.forEach((vi) => set.add(vi.item.id)); // Manga IDs are strings
+    viewableItems.forEach(vi => set.add(vi.item.id)); // Manga IDs are strings
     return set;
   }, [viewableItems]);
 
-  const renderItem = useCallback(({ item, index }: any) => {
-    const isVisible = animationsEnabled ? visibleIdSet.has(item.id) : true;
-    const paddingLeft = index === 0 ? 16 : 8;
-    const paddingRight = index === list.length - 1 ? 16 : 8;
+  const renderItem = useCallback(
+    ({item, index}: any) => {
+      const isVisible = animationsEnabled ? visibleIdSet.has(item.id) : true;
+      const paddingLeft = index === 0 ? 16 : 8;
+      const paddingRight = index === list.length - 1 ? 16 : 8;
 
-    return (
-      <Card
-        item={item}
-        isVisible={isVisible}
-        size={100}
-        paddingLeft={paddingLeft}
-        paddingRight={paddingRight}
-        onClick={() => onCardClick(item)}
-        onLongPress={() => onCardLongPress(item)}
-      />
-    );
-  }, [animationsEnabled, list.length, onCardClick, onCardLongPress, visibleIdSet]);
+      return (
+        <Card
+          item={item}
+          isVisible={isVisible}
+          size={100}
+          paddingLeft={paddingLeft}
+          paddingRight={paddingRight}
+          onClick={() => onCardClick(item)}
+          onLongPress={() => onCardLongPress(item)}
+        />
+      );
+    },
+    [
+      animationsEnabled,
+      list.length,
+      onCardClick,
+      onCardLongPress,
+      visibleIdSet,
+    ],
+  );
 
   return (
     <View style={styles.container}>
@@ -62,7 +78,7 @@ export default function HorizontalListDisplayer({ title, list, onCardClick, onCa
       <FlatList
         data={list}
         horizontal
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         showsHorizontalScrollIndicator={false}
         // PERFORMANCE SETTINGS START
         initialNumToRender={4} // render only x items initially
@@ -72,7 +88,7 @@ export default function HorizontalListDisplayer({ title, list, onCardClick, onCa
         // PERFORMANCE SETTINGS END
         renderItem={renderItem}
         onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
+        viewabilityConfig={{viewAreaCoveragePercentThreshold: 0}}
       />
     </View>
   );

@@ -1,6 +1,12 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { lightTheme, darkTheme } from '../utils/theme';
+import {lightTheme, darkTheme} from '../utils/theme';
 
 interface ThemeContextType {
   theme: typeof lightTheme;
@@ -22,13 +28,15 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     const loadTheme = async () => {
       const storedTheme = await AsyncStorage.getItem('theme');
-      if (storedTheme === 'dark') {setIsDark(true);}
+      if (storedTheme === 'dark') {
+        setIsDark(true);
+      }
     };
     loadTheme();
   }, []);
@@ -42,7 +50,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const theme = isDark ? darkTheme : lightTheme;
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark }}>
+    <ThemeContext.Provider value={{theme, toggleTheme, isDark}}>
       {children}
     </ThemeContext.Provider>
   );

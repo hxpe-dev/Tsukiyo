@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,11 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
-import { MangaDownloads } from '../types/mangadex';
-import { useTheme } from '../context/ThemeContext';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../navigation/AppNavigator';
+import {MangaDownloads} from '../types/mangadex';
+import {useTheme} from '../context/ThemeContext';
 import Share from 'react-native-share';
 
 import {
@@ -28,12 +28,12 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
 
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
   const [downloads, setDownloads] = useState<MangaDownloads>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [sizes, setSizes] = useState<{ [mangaId: string]: number }>({});
+  const [sizes, setSizes] = useState<{[mangaId: string]: number}>({});
 
   useEffect(() => {
     loadDownloads();
@@ -44,9 +44,9 @@ export default function ProfileScreen() {
     setDownloads(data);
 
     // Calculate sizes for each manga
-    const sizeMap: { [mangaId: string]: number } = {};
+    const sizeMap: {[mangaId: string]: number} = {};
     await Promise.all(
-      Object.keys(data).map(async (mangaId) => {
+      Object.keys(data).map(async mangaId => {
         try {
           const size = await getMangaFolderSize(mangaId);
           sizeMap[mangaId] = size;
@@ -54,14 +54,16 @@ export default function ProfileScreen() {
           console.warn(`Error getting size for ${mangaId}:`, err);
           sizeMap[mangaId] = 0;
         }
-      })
+      }),
     );
     setSizes(sizeMap);
   };
 
   const shareImages = async (imageUris: string[]) => {
     try {
-      const urls = imageUris.map((uri) => uri.startsWith('file://') ? uri : `file://${uri}`);
+      const urls = imageUris.map(uri =>
+        uri.startsWith('file://') ? uri : `file://${uri}`,
+      );
 
       const shareOptions = {
         urls,
@@ -77,7 +79,7 @@ export default function ProfileScreen() {
   };
 
   const toggleExpand = (mangaId: string) => {
-    setExpanded((prev) => {
+    setExpanded(prev => {
       const next = new Set(prev);
       next.has(mangaId) ? next.delete(mangaId) : next.add(mangaId);
       return next;
@@ -85,17 +87,21 @@ export default function ProfileScreen() {
   };
 
   const confirmDeleteManga = (mangaId: string) => {
-    Alert.alert('Delete Manga', 'Are you sure you want to delete this manga and all its chapters?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          const updated = await deleteDownloadedManga(mangaId);
-          setDownloads(updated);
+    Alert.alert(
+      'Delete Manga',
+      'Are you sure you want to delete this manga and all its chapters?',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const updated = await deleteDownloadedManga(mangaId);
+            setDownloads(updated);
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const handleDeleteChapter = async (mangaId: string, chapterId: string) => {
@@ -106,16 +112,24 @@ export default function ProfileScreen() {
   const renderMangaItem = (mangaId: string) => {
     const manga = downloads[mangaId]; // Get the entire manga data
     const mangaTitle = manga?.title || 'Unknown Manga'; // Fallback if title is missing
-    const chapters = manga ? manga : {};  // Ensure chapters are properly fetched
+    const chapters = manga ? manga : {}; // Ensure chapters are properly fetched
 
     return (
       <View key={mangaId} style={styles.mangaContainer}>
         <View style={styles.mangaRow}>
-          <TouchableOpacity onPress={() => toggleExpand(mangaId)} style={styles.flexRow}>
-            <Text style={styles.mangaTitle} numberOfLines={1} ellipsizeMode="tail">
+          <TouchableOpacity
+            onPress={() => toggleExpand(mangaId)}
+            style={styles.flexRow}>
+            <Text
+              style={styles.mangaTitle}
+              numberOfLines={1}
+              ellipsizeMode="tail">
               {mangaTitle}
               {sizes[mangaId] !== undefined && (
-                <Text style={styles.fileSize}> • {formatBytes(sizes[mangaId])}</Text>
+                <Text style={styles.fileSize}>
+                  {' '}
+                  • {formatBytes(sizes[mangaId])}
+                </Text>
               )}
             </Text>
             <Icon
@@ -131,15 +145,16 @@ export default function ProfileScreen() {
 
         {expanded.has(mangaId) &&
           Object.entries(chapters).map(([chapterId, chapterImages]) => {
-            if (chapterId === 'title') {return null;}
+            if (chapterId === 'title') {
+              return null;
+            }
 
             const images = chapterImages as string[];
-            console.log(images);
 
             return (
               <View key={chapterId} style={styles.chapterRow}>
                 <Text style={styles.chapterText}>
-                  {chapterId.slice(0, 5)}... ({images.length} images)
+                  {chapterId.slice(0, 12)}... ({images.length} images)
                 </Text>
                 <View style={styles.utilsRow}>
                   <TouchableOpacity
@@ -147,11 +162,11 @@ export default function ProfileScreen() {
                       if (images.length > 0) {
                         shareImages(images);
                       }
-                    }}
-                  >
+                    }}>
                     <Icon name="share-2" size={16} color={theme.button} />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDeleteChapter(mangaId, chapterId)}>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteChapter(mangaId, chapterId)}>
                     <Icon name="trash" size={16} color="red" />
                   </TouchableOpacity>
                 </View>
@@ -162,7 +177,7 @@ export default function ProfileScreen() {
     );
   };
 
-  const renderItem = ({ item }: { item: string }) => renderMangaItem(item);
+  const renderItem = ({item}: {item: string}) => renderMangaItem(item);
 
   return (
     <View style={styles.container}>
@@ -178,7 +193,7 @@ export default function ProfileScreen() {
       <Text style={styles.mangaDownloadsText}>Manga Downloads</Text>
       <FlatList
         data={Object.keys(downloads)}
-        keyExtractor={(item) => item}
+        keyExtractor={item => item}
         renderItem={renderItem}
       />
     </View>
