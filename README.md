@@ -38,4 +38,4 @@ We're open to contributions of all kinds! Whether it's bug reports, new features
 Feel free to submit pull requests, create issues, or share your suggestions. Whatever you have to offer, we can use!
 
 ## LICENSE 📜
-Dantotsu is licensed under the MIT License (MIT). More info can be found [here](LICENSE.md).
+Tsukiyo is licensed under the MIT License (MIT). More info can be found [here](LICENSE.md).
