@@ -60,7 +60,9 @@ const Card: React.FC<CardProps> = ({
   }, [isVisible, animation]);
 
   const isManga = (obj: any): obj is Manga => 'attributes' in obj;
-  const title = isManga(item) ? item.attributes.title.en ?? 'No Title' : item.title ?? 'No Title';
+  const title = isManga(item)
+    ? item.attributes.title.en ?? item.attributes.title['ja-ro'] ?? 'No Title'
+    : item.title ?? 'No Title';
   const cover = isManga(item)
     ? `https://uploads.mangadex.org/covers/${item.id}/${item.coverFileName}.512.jpg`
     : item.cover;

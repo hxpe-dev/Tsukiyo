@@ -6,7 +6,6 @@ import {
   Image,
   Dimensions,
   FlatList,
-  ScrollView,
   TouchableOpacity,
 } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
@@ -20,6 +19,7 @@ import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import PageLoading from '../components/PageLoading';
 import CropImage from '../components/CropImage';
+import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 
 type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
@@ -43,6 +43,7 @@ const ReaderScreen = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showNextChapterButton, setShowNextChapterButton] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const shouldSetInitialPage = useRef(true);
   const enterFromPreviousChapter = useRef(false);
   const flatListRef = useRef<FlatList>(null);
@@ -291,13 +292,19 @@ const ReaderScreen = () => {
     };
 
     return (
-      <ScrollView
+      <ReactNativeZoomableView
+        maxZoom={3}
+        minZoom={1}
+        zoomStep={0.5}
+        initialZoom={1}
+        bindToBorders={true}
+        doubleTapZoomToCenter={true}
+        onZoomAfter={(event, gestureState, zoomableViewEventObject) => {
+          setZoomLevel(zoomableViewEventObject.zoomLevel);
+        }}
         style={styles.zoomContainer}
-        maximumZoomScale={3}
-        minimumZoomScale={1}
-        contentContainerStyle={styles.scrollContent}
       >
-        <TouchableOpacity activeOpacity={1} onPress={handleTap} style={styles.flex1}>
+        <TouchableOpacity activeOpacity={1} onPress={handleTap} style={styles.flex1} disabled={zoomLevel !== 1}>
           <View style={[styles.centeredImageWrapper, { height: readerHeight - readerOffset }]}>
             <Image
               source={{ uri: item }}
@@ -307,7 +314,7 @@ const ReaderScreen = () => {
             />
           </View>
         </TouchableOpacity>
-      </ScrollView>
+      </ReactNativeZoomableView>
     );
   };
 
@@ -378,6 +385,7 @@ const ReaderScreen = () => {
         }) : undefined}
         onEndReached={isWebtoon.current ? () => setShowNextChapterButton(true) : undefined}
         onEndReachedThreshold={0.9}
+        scrollEnabled={zoomLevel === 1}
         // PERFORMANCE SETTINGS START
         removeClippedSubviews={true}
         initialNumToRender={isWebtoon.current ? 5 : 3}
