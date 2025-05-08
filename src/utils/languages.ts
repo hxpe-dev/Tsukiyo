@@ -42,16 +42,33 @@ export function getLanguageName(
     : 'Unknown Language';
 }
 
-
-const titleLanguagePriority = ['en', 'ja-ro', 'ja', 'ko', 'zh', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'id', 'th'];
+const titleLanguagePriority = [
+  'en',
+  'ja-ro',
+  'ja',
+  'ko',
+  'zh',
+  'fr',
+  'es',
+  'de',
+  'it',
+  'pt',
+  'ru',
+  'id',
+  'th',
+];
 
 export function getTitleFromItem(item: any): string {
-  if (!item || !item.attributes || !item.attributes.title) {return 'No Title';}
+  if (!item || !item.attributes || !item.attributes.title) {
+    return 'No Title';
+  }
 
   const titles = item.attributes.title;
 
   for (const lang of titleLanguagePriority) {
-    if (titles[lang]) {return titles[lang];}
+    if (titles[lang]) {
+      return titles[lang];
+    }
   }
 
   const fallback = Object.values(titles)[0];

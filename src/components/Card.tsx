@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import {Manga, MangaProgress} from '../types/mangadex';
 import {useTheme} from '../context/ThemeContext';
-import { getTitleFromItem } from '../utils/languages';
+import {getTitleFromItem} from '../utils/languages';
 
 interface CardProps {
   item: Manga | MangaProgress;
@@ -72,7 +72,9 @@ const Card: React.FC<CardProps> = ({
 
   const isManga = (obj: any): obj is Manga => 'attributes' in obj;
 
-  const title = isManga(item) ? getTitleFromItem(item) : item.title ?? 'No Title';
+  const title = isManga(item)
+    ? getTitleFromItem(item)
+    : item.title ?? 'No Title';
 
   const cover = isManga(item)
     ? `https://uploads.mangadex.org/covers/${item.id}/${item.coverFileName}.512.jpg`
