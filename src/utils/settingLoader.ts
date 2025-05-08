@@ -2,12 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export async function getVerticalCardAnimations(): Promise<boolean> {
   const val = await AsyncStorage.getItem('vertical_card_animations');
-  return val === 'true';
+  return val === 'true' || val === null;
 }
 
 export async function getHorizontalCardAnimations(): Promise<boolean> {
   const val = await AsyncStorage.getItem('horizontal_card_animations');
-  return val === 'true';
+  return val === 'true' || val === null;
 }
 
 export async function getPlusEighteen(): Promise<boolean> {
@@ -17,7 +17,7 @@ export async function getPlusEighteen(): Promise<boolean> {
 
 export async function getReaderAnimations(): Promise<boolean> {
   const val = await AsyncStorage.getItem('reader_animations');
-  return val === 'true';
+  return val === 'true' || val === null;
 }
 
 export async function getReaderOffset(): Promise<number> {

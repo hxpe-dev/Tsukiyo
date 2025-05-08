@@ -12,7 +12,7 @@ export default function SettingsScreen() {
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
     useState(true);
   const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
-  const [plusEighteenEnabled, setPlusEighteenEnabled] = useState(true);
+  const [plusEighteenEnabled, setPlusEighteenEnabled] = useState(false);
   const [readerOffset, setReaderOffset] = useState('0');
   const [webtoonSegmentHeight, setWebtoonSegmentHeight] = useState('1000');
   const [newChapterCheckFrequency, setNewChapterCheckFrequency] =

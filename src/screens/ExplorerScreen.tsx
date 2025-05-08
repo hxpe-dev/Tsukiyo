@@ -45,7 +45,7 @@ export default function ExplorerScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
     useState(true);
-  const [plusEighteenEnabled, setPlusEighteenEnabled] = useState(true);
+  const [plusEighteenEnabled, setPlusEighteenEnabled] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
 

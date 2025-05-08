@@ -14,7 +14,6 @@ import {
   getMangaById,
   getMangaChapters,
   isApiRateLimited,
-  checkForNewChapters,
 } from '../api/mangadex';
 import {Chapter, Manga, MangaProgressEntry} from '../types/mangadex';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -55,7 +54,6 @@ const InfoScreen = () => {
   const isManga = (obj: any): obj is Manga => 'attributes' in obj;
 
   useEffect(() => {
-    checkForNewChapters();
     const resolveManga = async () => {
       if (isApiRateLimited()) {
         setRateLimited(true);

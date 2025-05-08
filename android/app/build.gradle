@@ -77,6 +77,10 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+def keystorePropertiesFile = rootProject.file("keystore.properties");
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -92,10 +96,10 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file('tsukiyo_key.keystore')
-            storePassword System.console().readLine("\nKeystore password:")
-            keyAlias System.console().readLine("\nAlias: ")
-            keyPassword System.console().readLine("\nAlias password: ")
+            storeFile file(keystoreProperties['RELEASE_STORE_FILE'])
+            storePassword keystoreProperties['RELEASE_STORE_PASSWORD']
+            keyAlias keystoreProperties['RELEASE_KEY_ALIAS']
+            keyPassword keystoreProperties['RELEASE_KEY_PASSWORD']
         }
         debug {
             storeFile file('debug.keystore')
