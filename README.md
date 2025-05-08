@@ -5,6 +5,7 @@
 <p align="center">
   <a href="https://github.com/hxpe-dev/Tsukiyo/releases"><img src="https://img.shields.io/github/downloads/hxpe-dev/Tsukiyo/total?color=%233DDC84&logo=android&logoColor=%23fff&style=for-the-badge"></a>
   <a href="https://github.com/hxpe-dev/Tsukiyo/releases"><img src="https://img.shields.io/github/v/release/hxpe-dev/Tsukiyo?style=for-the-badge&logo=github"></a>
+  <a href="https://www.codefactor.io/repository/github/hxpe-dev/tsukiyo"><img src="https://img.shields.io/codefactor/grade/github/hxpe-dev/Tsukiyo?style=for-the-badge&logo=codefactor"></a>
   <a href="https://github.com/hxpe-dev/Tsukiyo/commits"><img src="https://img.shields.io/github/last-commit/hxpe-dev/Tsukiyo?style=for-the-badge&logo=github"></a>
 </p>
 

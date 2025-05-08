@@ -368,15 +368,20 @@ const InfoScreen = () => {
     </View>
   );
 
+  const getChapterData = () => {
+    switch (selectedUrl) {
+      case 'mangadex':
+        return mangadexChapters;
+      case 'all':
+        return chapters;
+      default:
+        return externalChapters;
+    }
+  };
+
   return (
     <FlatList
-      data={
-        selectedUrl === 'all'
-          ? chapters
-          : selectedUrl === 'mangadex'
-          ? mangadexChapters
-          : externalChapters
-      }
+      data={getChapterData()}
       keyExtractor={chapter => `${chapter.id}-${selectedLanguage}`}
       renderItem={renderChapterItem}
       ListHeaderComponent={renderHeader}
