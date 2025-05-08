@@ -1,6 +1,5 @@
-
 <p align="center">
-  <span style="font-size: 64px; font-weight: bold;">Tsukiyo</span>
+  <strong><em><a href="#">🌙 Tsukiyo</a></em></strong>
 </p>
 <p align="center">
   <a href="https://github.com/hxpe-dev/Tsukiyo/releases"><img src="https://img.shields.io/github/downloads/hxpe-dev/Tsukiyo/total?color=%233DDC84&logo=android&logoColor=%23fff&style=for-the-badge"></a>
@@ -9,7 +8,7 @@
   <a href="https://github.com/hxpe-dev/Tsukiyo/commits"><img src="https://img.shields.io/github/last-commit/hxpe-dev/Tsukiyo?style=for-the-badge&logo=github"></a>
 </p>
 
-# **Tsukiyo 🌟**
+# **Tsukiyo**
 
 Tsukiyo is a manga reading app using the [mangadex api](https://api.mangadex.org/).
 
