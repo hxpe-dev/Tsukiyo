@@ -181,6 +181,17 @@ const InfoScreen = () => {
     downloadedChapterIds,
   ]);
 
+  const getChapterData = () => {
+    switch (selectedUrl) {
+      case 'mangadex':
+        return mangadexChapters;
+      case 'all':
+        return chapters;
+      default:
+        return externalChapters;
+    }
+  };
+
   const handleStartReading = (
     chapterId?: string,
     externalUrl?: string | null,
@@ -192,12 +203,7 @@ const InfoScreen = () => {
         mangaLang: selectedLanguage,
         mangaCover: imageUrl || '',
         chapterId,
-        chapters:
-          selectedUrl === 'all'
-            ? chapters
-            : selectedUrl === 'mangadex'
-            ? mangadexChapters
-            : externalChapters,
+        chapters: getChapterData(),
         page: 0,
         externalUrl: externalUrl || null,
       });
@@ -367,17 +373,6 @@ const InfoScreen = () => {
       {rateLimited && <RateLimitWarning />}
     </View>
   );
-
-  const getChapterData = () => {
-    switch (selectedUrl) {
-      case 'mangadex':
-        return mangadexChapters;
-      case 'all':
-        return chapters;
-      default:
-        return externalChapters;
-    }
-  };
 
   return (
     <FlatList
