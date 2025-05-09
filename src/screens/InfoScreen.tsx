@@ -7,17 +7,24 @@ import {
   FlatList,
   View,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {
+  checkForNewChapters,
+  getChapterImages,
   getMangaById,
   getMangaChapters,
   isApiRateLimited,
 } from '../api/mangadex';
 import {Chapter, Manga, MangaProgressEntry} from '../types/mangadex';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {isChapterDownloaded, getReadingProgress} from '../utils/storage';
+import {
+  isChapterDownloaded,
+  getReadingProgress,
+  saveChapterImagesLocally,
+} from '../utils/storage';
 import Icon from 'react-native-vector-icons/Feather';
 import RateLimitWarning from '../components/RateLimitWarning';
 import {useTheme} from '../context/ThemeContext';
@@ -41,12 +48,15 @@ const InfoScreen = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedUrl, setSelectedUrl] = useState<string | null>('all');
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
   const [readingProgress, setReadingProgress] =
     useState<MangaProgressEntry | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMoreChapters, setHasMoreChapters] = useState<boolean>(true);
   const [downloadedChapterIds, setDownloadedChapterIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [downloadingChapters, setDownloadingChapters] = useState<Set<string>>(
     new Set(),
   );
   const [rateLimited, setRateLimited] = useState(false);
@@ -100,9 +110,11 @@ const InfoScreen = () => {
     setExternalChapters([]);
     setCurrentPage(1);
     setHasMoreChapters(true);
+    setSelectedUrl(null);
   }, [selectedLanguage, manga]);
 
   useEffect(() => {
+    checkForNewChapters();
     const fetchChapters = async () => {
       if (!manga || !hasMoreChapters || loading) {
         return;
@@ -139,6 +151,20 @@ const InfoScreen = () => {
             setMangadexChapters(prev => [...prev, ...mangadex]);
             setExternalChapters(prev => [...prev, ...external]);
             setCurrentPage(prev => prev + 1);
+
+            // Automatically select the preferred chapter source
+            setSelectedUrl(prev => {
+              if (prev === 'mangadex' || prev === 'external') {
+                return prev; // don't override if user already selected
+              }
+              if (mangadex.length > 0) {
+                return 'mangadex';
+              }
+              if (external.length > 0) {
+                return 'external';
+              }
+              return null;
+            });
 
             // Check which chapters are downloaded
             const newDownloadedIds = new Set(downloadedChapterIds);
@@ -180,15 +206,39 @@ const InfoScreen = () => {
     downloadedChapterIds,
   ]);
 
-  const getChapterData = () => {
-    switch (selectedUrl) {
-      case 'mangadex':
-        return mangadexChapters;
-      case 'all':
-        return chapters;
-      default:
-        return externalChapters;
+  const handleDownloadChapter = async (chapterId: string) => {
+    if (!manga) {
+      return;
     }
+    setDownloadingChapters(prev => new Set(prev).add(chapterId));
+    try {
+      const fetched = await getChapterImages(chapterId);
+      await saveChapterImagesLocally(
+        manga.id,
+        getTitleFromItem(manga),
+        chapterId,
+        fetched,
+      );
+      setDownloadedChapterIds(prev => new Set(prev).add(chapterId));
+    } catch (error) {
+      console.error(`Error downloading chapter ${chapterId}:`, error);
+    } finally {
+      setDownloadingChapters(prev => {
+        const updated = new Set(prev);
+        updated.delete(chapterId);
+        return updated;
+      });
+    }
+  };
+
+  const getChapterData = () => {
+    if (selectedUrl === 'mangadex') {
+      return mangadexChapters;
+    }
+    if (selectedUrl === 'external') {
+      return externalChapters;
+    }
+    return []; // fallback
   };
 
   const handleStartReading = (
@@ -212,6 +262,9 @@ const InfoScreen = () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const renderChapterItem = ({item}: {item: Chapter}) => {
     const isDownloaded = downloadedChapterIds.has(item.id);
+    const isDownloading = downloadingChapters.has(item.id);
+    const isExternal = !!item.attributes.externalUrl;
+
     return (
       <TouchableOpacity
         style={styles.chapterItem}
@@ -222,16 +275,32 @@ const InfoScreen = () => {
           <Text style={styles.chapterTitle}>
             Chapter {item.attributes.chapter || '?'}{' '}
             {item.attributes.title ? ': ' + item.attributes.title : ''}
-            {item.attributes.externalUrl ? ' (External)' : ''}
+            {isExternal ? ' (External)' : ''}
           </Text>
-          {isDownloaded && (
-            <Icon
-              name="check"
-              size={24}
-              color={theme.positive}
-              style={styles.checkIcon}
-            />
-          )}
+          {!isExternal &&
+            (isDownloaded ? (
+              <Icon
+                name="check"
+                size={24}
+                color={theme.positive}
+                style={styles.utilIcon}
+              />
+            ) : isDownloading ? (
+              <ActivityIndicator
+                size="small"
+                color={theme.button}
+                style={styles.utilIcon}
+              />
+            ) : (
+              <TouchableOpacity onPress={() => handleDownloadChapter(item.id)}>
+                <Icon
+                  name="download"
+                  size={24}
+                  color={theme.button}
+                  style={styles.utilIcon}
+                />
+              </TouchableOpacity>
+            ))}
         </View>
       </TouchableOpacity>
     );
@@ -292,22 +361,6 @@ const InfoScreen = () => {
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.urlScroller}>
-        {chapters.length > 0 && (
-          <TouchableOpacity
-            style={[
-              styles.urlButton,
-              selectedUrl === 'all' && styles.selectedUrlButton,
-            ]}
-            onPress={() => setSelectedUrl('all')}>
-            <Text
-              style={[
-                styles.urlButtonText,
-                selectedUrl === 'all' && styles.selectedUrlButtonText,
-              ]}>
-              All
-            </Text>
-          </TouchableOpacity>
-        )}
         {mangadexChapters.length > 0 && (
           <TouchableOpacity
             style={[
@@ -366,7 +419,9 @@ const InfoScreen = () => {
           {readingProgress ? 'Continue Reading' : 'Start Reading'}
         </Text>
       </TouchableOpacity>
-      <Text style={styles.sectionHeader}>Chapters</Text>
+      <Text style={styles.sectionHeader}>
+        Chapters ({getChapterData().length})
+      </Text>
       {rateLimited && <RateLimitWarning />}
     </View>
   );
@@ -439,7 +494,7 @@ const useThemedStyles = (theme: any) =>
       fontSize: 16,
       color: theme.text,
     },
-    checkIcon: {
+    utilIcon: {
       marginLeft: 8,
     },
     sectionHeader: {

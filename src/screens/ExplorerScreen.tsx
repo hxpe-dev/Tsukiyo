@@ -24,7 +24,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import {useTheme} from '../context/ThemeContext';
 import PageLoading from '../components/PageLoading';
 import {
-  getPlusEighteen,
+  getMatureContent,
   getVerticalCardAnimations,
 } from '../utils/settingLoader';
 
@@ -45,16 +45,16 @@ export default function ExplorerScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
     useState(true);
-  const [plusEighteenEnabled, setPlusEighteenEnabled] = useState(false);
+  const [matureContentEnabled, setMatureContentEnabled] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
 
   useEffect(() => {
     async function loadSetting() {
       setVerticalCardAnimationsEnabled(await getVerticalCardAnimations());
-      const plusEighteen = await getPlusEighteen();
-      setPlusEighteenEnabled(plusEighteen);
-      loadLatestManga(plusEighteen);
+      const matureContent = await getMatureContent();
+      setMatureContentEnabled(matureContent);
+      loadLatestManga(matureContent);
     }
 
     loadSetting();
@@ -66,14 +66,14 @@ export default function ExplorerScreen() {
   const [viewableItems, setViewableItems] = useState<ViewToken[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
-  const loadLatestManga = async (plusEighteen: boolean = true) => {
+  const loadLatestManga = async (matureContent: boolean = true) => {
     if (isApiRateLimited()) {
       setRateLimited(true);
       return;
     }
     setLoading(true);
     try {
-      const mangaData = await getLatestManga(15, plusEighteen);
+      const mangaData = await getLatestManga(15, matureContent);
       setLatestManga(mangaData);
     } catch (error) {
       if (error instanceof Error && error.message === 'RATE_LIMITED') {
@@ -92,7 +92,7 @@ export default function ExplorerScreen() {
     setSearchResults([]);
     setSearchQuery('');
     setHasSearched(false);
-    loadLatestManga(plusEighteenEnabled);
+    loadLatestManga(matureContentEnabled);
   };
 
   const handleSearch = async () => {
@@ -109,7 +109,7 @@ export default function ExplorerScreen() {
       const results = await searchManga(
         searchQuery.trim(),
         30,
-        plusEighteenEnabled,
+        matureContentEnabled,
       );
       setSearchResults(results);
     } catch (error) {
@@ -282,7 +282,7 @@ const useThemedStyles = (theme: any) =>
       alignItems: 'center',
     },
     searchInput: {
-      backgroundColor: theme.inputBackground,
+      backgroundColor: theme.elevatedBackground,
       borderRadius: 100,
       paddingHorizontal: 16,
       paddingVertical: 16,
@@ -301,7 +301,7 @@ const useThemedStyles = (theme: any) =>
       textAlign: 'center',
       marginTop: 32,
       fontSize: 16,
-      color: theme.subtleText,
+      color: theme.textSecondary,
     },
     grid: {
       paddingTop: 8,

@@ -7,6 +7,7 @@ import {setupNotificationChannel} from './src/notifications/setupNotificationCha
 import BackgroundFetch from 'react-native-background-fetch';
 import {checkForNewChapters} from './src/api/mangadex';
 import {getNewChapterCheckFrequency} from './src/utils/settingLoader.ts';
+import VersionCheckModal from './src/components/VersionCheckModal.tsx';
 
 const App = () => {
   const [fetchInterval, setFetchInterval] = useState(180);
@@ -55,6 +56,7 @@ const App = () => {
     <SafeAreaProvider>
       <ThemeProvider>
         <NavigationContainer>
+          <VersionCheckModal />
           <AppNavigator />
         </NavigationContainer>
       </ThemeProvider>

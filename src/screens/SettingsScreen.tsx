@@ -1,7 +1,16 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, Switch, TextInput} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Switch,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTheme} from '../context/ThemeContext';
+import Icon from 'react-native-vector-icons/Feather';
+import {InfoPopup} from '../components/InfoPopup';
 
 export default function SettingsScreen() {
   const {theme, toggleTheme, isDark} = useTheme();
@@ -12,13 +21,17 @@ export default function SettingsScreen() {
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
     useState(true);
   const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
-  const [plusEighteenEnabled, setPlusEighteenEnabled] = useState(false);
+  const [matureContentEnabled, setMatureContentEnabled] = useState(false);
+  const [notifyOnNewVersionEnabled, setNotifyOnNewVersionEnabled] =
+    useState(true);
   const [readerOffset, setReaderOffset] = useState('0');
   const [webtoonSegmentHeight, setWebtoonSegmentHeight] = useState('1000');
   const [newChapterCheckFrequency, setNewChapterCheckFrequency] =
     useState('180');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showRestartWarning, setShowRestartWarning] = useState(false);
+  const [infoVisible, setInfoVisible] = useState(false);
+  const [infoText, setInfoText] = useState('');
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -31,7 +44,10 @@ export default function SettingsScreen() {
       const readerAnimationsSetting = await AsyncStorage.getItem(
         'reader_animations',
       );
-      const plusEighteenSetting = await AsyncStorage.getItem('plus_eighteen');
+      const matureContentSetting = await AsyncStorage.getItem('mature_content');
+      const notifyOnNewVersionSetting = await AsyncStorage.getItem(
+        'notify_new_version',
+      );
       const readerOffsetSetting = await AsyncStorage.getItem('reader_offset');
       const webtoonSegmentHeightSetting = await AsyncStorage.getItem(
         'webtoon_segment_height',
@@ -53,8 +69,11 @@ export default function SettingsScreen() {
       if (readerAnimationsSetting !== null) {
         setReaderAnimationsEnabled(readerAnimationsSetting === 'true');
       }
-      if (plusEighteenSetting !== null) {
-        setPlusEighteenEnabled(plusEighteenSetting === 'true');
+      if (matureContentSetting !== null) {
+        setMatureContentEnabled(matureContentSetting === 'true');
+      }
+      if (notifyOnNewVersionSetting !== null) {
+        setNotifyOnNewVersionEnabled(notifyOnNewVersionSetting === 'true');
       }
       if (readerOffsetSetting !== null) {
         setReaderOffset(readerOffsetSetting);
@@ -88,10 +107,16 @@ export default function SettingsScreen() {
     await AsyncStorage.setItem('reader_animations', String(newValue));
   };
 
-  const togglePlusEighteen = async () => {
-    const newValue = !plusEighteenEnabled;
-    setPlusEighteenEnabled(newValue);
-    await AsyncStorage.setItem('plus_eighteen', String(newValue));
+  const toggleMatureContent = async () => {
+    const newValue = !matureContentEnabled;
+    setMatureContentEnabled(newValue);
+    await AsyncStorage.setItem('mature_content', String(newValue));
+  };
+
+  const toggleNotifyNewVersion = async () => {
+    const newValue = !notifyOnNewVersionEnabled;
+    setNotifyOnNewVersionEnabled(newValue);
+    await AsyncStorage.setItem('notify_new_version', String(newValue));
   };
 
   const updateReaderOffset = async (value: string) => {
@@ -116,6 +141,11 @@ export default function SettingsScreen() {
       setNewChapterCheckFrequency(value);
       await AsyncStorage.setItem('new_chapter_check_frequency', value);
     }
+  };
+
+  const showInfo = (text: string) => {
+    setInfoText(text);
+    setInfoVisible(true);
   };
 
   return (
@@ -165,17 +195,42 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.settingRow}>
-        <Text style={styles.text}>+18 Content</Text>
+        <Text style={styles.text}>Show Mature Content</Text>
         <Switch
-          value={plusEighteenEnabled}
-          onValueChange={togglePlusEighteen}
-          thumbColor={plusEighteenEnabled ? theme.button : theme.error}
+          value={matureContentEnabled}
+          onValueChange={toggleMatureContent}
+          thumbColor={matureContentEnabled ? theme.button : theme.error}
           trackColor={{false: theme.border, true: theme.border}}
         />
       </View>
 
       <View style={styles.settingRow}>
-        <Text style={styles.text}>Reader Offset</Text>
+        <Text style={styles.text}>Notify On New App Version</Text>
+        <Switch
+          value={notifyOnNewVersionEnabled}
+          onValueChange={toggleNotifyNewVersion}
+          thumbColor={notifyOnNewVersionEnabled ? theme.button : theme.error}
+          trackColor={{false: theme.border, true: theme.border}}
+        />
+      </View>
+
+      <View style={styles.settingRow}>
+        <View style={styles.settingsLabel}>
+          <Text style={styles.text}>Reader Offset</Text>
+          <TouchableOpacity
+            onPress={() =>
+              showInfo(
+                'Controls how many pixels the manga image is offset upward from the bottom. This setting helps compensate for a known issue where the manga image is not vertically centered.',
+              )
+            }>
+            <Icon
+              name="info"
+              size={16}
+              color={theme.text}
+              style={styles.infoIcon}
+            />
+          </TouchableOpacity>
+        </View>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
@@ -185,7 +240,22 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.settingRow}>
-        <Text style={styles.text}>Webtoon Segment Height</Text>
+        <View style={styles.settingsLabel}>
+          <Text style={styles.text}>Webtoon Segment Height</Text>
+          <TouchableOpacity
+            onPress={() =>
+              showInfo(
+                'Controls the pixel height of each webtoon image segment. Lower values improve quality but require more processing power.',
+              )
+            }>
+            <Icon
+              name="info"
+              size={16}
+              color={theme.text}
+              style={styles.infoIcon}
+            />
+          </TouchableOpacity>
+        </View>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
@@ -195,7 +265,22 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.settingRow}>
-        <Text style={styles.text}>New Chapter Check Frequency</Text>
+        <View style={styles.settingsLabel}>
+          <Text style={styles.text}>New Chapter Check Frequency</Text>
+          <TouchableOpacity
+            onPress={() =>
+              showInfo(
+                'Sets how frequently the app checks for new chapters of your currently reading mangas (in minutes).',
+              )
+            }>
+            <Icon
+              name="info"
+              size={16}
+              color={theme.text}
+              style={styles.infoIcon}
+            />
+          </TouchableOpacity>
+        </View>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
@@ -203,6 +288,13 @@ export default function SettingsScreen() {
           onChangeText={updateNewChapterCheckFrequency}
         />
       </View>
+
+      <InfoPopup
+        visible={infoVisible}
+        onClose={() => setInfoVisible(false)}
+        description={infoText}
+        theme={theme}
+      />
 
       {showRestartWarning && (
         <Text style={styles.warningText}>
@@ -225,6 +317,10 @@ const useThemedStyles = (theme: any) =>
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 32,
+    },
+    settingsLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     text: {
       fontSize: 16,
@@ -256,5 +352,8 @@ const useThemedStyles = (theme: any) =>
       borderRadius: 6,
       width: 80,
       textAlign: 'right',
+    },
+    infoIcon: {
+      marginLeft: 6,
     },
   });

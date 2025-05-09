@@ -218,16 +218,27 @@ export const checkForNewChapters = async () => {
 
       // Get the chapter number of the last read chapter
       const lastKnownChapterCount = entry.chapters.length;
+      const isExternal = !!entry.externalUrl;
 
       // Get the most recently published chapter (English)
       const response = await fetchFromApi(`/manga/${mangaId}/feed`, {
         translatedLanguage: [entry.mangaLang],
-        limit: 1,
+        limit: 100,
         offset: lastKnownChapterCount,
         order: {publishAt: 'asc'},
       });
 
-      const latest = response?.data?.[0];
+      const latests = response?.data;
+      let latest = latests?.[0];
+
+      for (var latestEntry of latests) {
+        const hasExternalUrl = !!latestEntry.attributes.externalUrl;
+        if (hasExternalUrl === isExternal) {
+          latest = latestEntry;
+          break;
+        }
+      }
+
       if (!latest) {
         continue;
       }

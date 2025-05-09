@@ -37,5 +37,15 @@ By downloading, installing, or using this application, you agree to the followin
 We're open to contributions of all kinds! Whether it's bug reports, new features, or improvements to documentation, your help is welcome. 
 Feel free to submit pull requests, create issues, or share your suggestions. Whatever you have to offer, we can use!
 
+## Todo
+- [ ] Auto clean-up chapter files once two chapters ahead from a downloaded chapter (goal: save phone storage).
+- [ ] Offline mode.
+- [ ] Enhance info screen chapters selection (some mangas have multiple version of the same chapter --> example: solo leveling).
+- [ ] Enhance new chapters verification to keep with the chapters specifications.
+- [x] Ability to download mangas in advance (not only the lazy loading).
+- [x] New version check at the start of the app.
+- [x] Fix low quality webtoon images.
+- [x] Basic notification system for new chapters.
+
 ## LICENSE 📜
 Tsukiyo is licensed under the MIT License (MIT). More info can be found [here](LICENSE.md).

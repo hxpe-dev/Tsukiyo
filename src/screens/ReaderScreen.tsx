@@ -358,36 +358,44 @@ const ReaderScreen = () => {
     };
 
     return (
-      <ReactNativeZoomableView
-        maxZoom={3}
-        minZoom={1}
-        zoomStep={0.5}
-        initialZoom={1}
-        bindToBorders={true}
-        doubleTapZoomToCenter={true}
-        onZoomAfter={(event, gestureState, zoomableViewEventObject) => {
-          setZoomLevel(zoomableViewEventObject.zoomLevel);
-        }}
-        style={styles.zoomContainer}>
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={handleTap}
-          style={styles.flex1}
-          disabled={zoomLevel !== 1}>
-          <View
-            style={[
-              styles.centeredImageWrapper,
-              {height: readerHeight - readerOffset},
-            ]}>
-            <Image
-              source={{uri: item}}
-              style={dynamicStyles.image}
-              resizeMode="contain"
-              fadeDuration={0}
-            />
+      <View style={styles.zoomContainer}>
+        <ReactNativeZoomableView
+          maxZoom={3}
+          minZoom={1}
+          zoomStep={0.5}
+          initialZoom={1}
+          bindToBorders={true}
+          doubleTapZoomToCenter={true}
+          onZoomAfter={(event, gestureState, zoomableViewEventObject) => {
+            setZoomLevel(zoomableViewEventObject.zoomLevel);
+          }}
+          style={styles.flex1}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={handleTap}
+            style={styles.flex1}
+            disabled={zoomLevel !== 1}>
+            <View
+              style={[
+                styles.centeredImageWrapper,
+                {height: readerHeight - readerOffset},
+              ]}>
+              <Image
+                source={{uri: item}}
+                style={dynamicStyles.image}
+                resizeMode="contain"
+                fadeDuration={0}
+              />
+            </View>
+          </TouchableOpacity>
+        </ReactNativeZoomableView>
+
+        {zoomLevel !== 1 && (
+          <View style={styles.zoomIndicator}>
+            <Text style={styles.zoomText}>{zoomLevel.toFixed(2)}x</Text>
           </View>
-        </TouchableOpacity>
-      </ReactNativeZoomableView>
+        )}
+      </View>
     );
   };
 
@@ -565,6 +573,22 @@ const useThemedStyles = (theme: any) =>
     },
     flex1: {
       flex: 1,
+    },
+    zoomIndicator: {
+      position: 'absolute',
+      top: '10%',
+      left: '50%',
+      transform: [{translateX: -30}, {translateY: -15}],
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+      zIndex: 999,
+    },
+    zoomText: {
+      color: theme.text,
+      fontSize: 12,
+      fontWeight: 'bold',
     },
   });
 

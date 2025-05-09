@@ -10,9 +10,14 @@ export async function getHorizontalCardAnimations(): Promise<boolean> {
   return val === 'true' || val === null;
 }
 
-export async function getPlusEighteen(): Promise<boolean> {
-  const val = await AsyncStorage.getItem('plus_eighteen');
+export async function getMatureContent(): Promise<boolean> {
+  const val = await AsyncStorage.getItem('mature_content');
   return val === 'true';
+}
+
+export async function getNotifyOnNewVersion(): Promise<boolean> {
+  const val = await AsyncStorage.getItem('notify_new_version');
+  return val === 'true' || val === null;
 }
 
 export async function getReaderAnimations(): Promise<boolean> {
