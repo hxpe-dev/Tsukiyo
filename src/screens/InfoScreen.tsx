@@ -12,7 +12,6 @@ import {
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {
-  checkForNewChapters,
   getChapterImages,
   getMangaById,
   getMangaChapters,
@@ -114,7 +113,6 @@ const InfoScreen = () => {
   }, [selectedLanguage, manga]);
 
   useEffect(() => {
-    checkForNewChapters();
     const fetchChapters = async () => {
       if (!manga || !hasMoreChapters || loading) {
         return;
