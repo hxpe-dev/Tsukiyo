@@ -1,5 +1,5 @@
 <p align="center">
-  <strong><em><a href="#">🌙 Tsukiyo</a></em></strong>
+    <img src="./assets/banner.png" width="100%">
 </p>
 <p align="center">
   <a href="https://github.com/hxpe-dev/Tsukiyo/releases"><img src="https://img.shields.io/github/downloads/hxpe-dev/Tsukiyo/total?color=%233DDC84&logo=android&logoColor=%23fff&style=for-the-badge"></a>
@@ -8,7 +8,7 @@
   <a href="https://github.com/hxpe-dev/Tsukiyo/commits"><img src="https://img.shields.io/github/last-commit/hxpe-dev/Tsukiyo?style=for-the-badge&logo=github"></a>
 </p>
 
-# **Tsukiyo**
+# **Tsukiyo 🌙**
 
 Tsukiyo is a manga reading app using the [mangadex api](https://api.mangadex.org/).
 
@@ -20,7 +20,6 @@ Tsukiyo is a manga reading app using the [mangadex api](https://api.mangadex.org
 By downloading, installing, or using this application, you agree to the following terms:
 - Use the application in compliance with all applicable laws.
 - Do not use the application to infringe on copyrighted content.
-- Take full responsibility for any extensions you install or use.
 - The developer is not responsible for user actions or content accessed through the app.
 
 ## Features
@@ -29,7 +28,7 @@ By downloading, installing, or using this application, you agree to the followin
 - **Track your reading progress** across multiple manga/webtoons
 - **Receive notifications** for new chapters
 - **Explore manga easily** with intuitive navigation and search
-- **Dark mode support** for comfortable reading at night
+- **Dark mode support** for an interface to your liking
 
 ### 🚀 STAR THIS REPOSITORY TO SUPPORT THE DEVELOPER AND ENCOURAGE THE DEVELOPMENT OF THE APPLICATION!
 
@@ -40,12 +39,18 @@ Feel free to submit pull requests, create issues, or share your suggestions. Wha
 ## Todo
 - [ ] Auto clean-up chapter files once two chapters ahead from a downloaded chapter (goal: save phone storage).
 - [ ] Offline mode.
+- [ ] Night mode.
+- [ ] Upgrade reader capacities.
+- [ ] Enhance image manipulation in reader.
 - [ ] Enhance info screen chapters selection (some mangas have multiple version of the same chapter --> example: solo leveling).
 - [ ] Enhance new chapters verification to keep with the chapters specifications.
 - [x] Ability to download mangas in advance (not only the lazy loading).
 - [x] New version check at the start of the app.
 - [x] Fix low quality webtoon images.
 - [x] Basic notification system for new chapters.
+
+## VISITORS
+<img src="https://count.getloli.com/@visitors?name=visitors&theme=moebooru&padding=7&offset=0&align=center&scale=1&pixelated=1&darkmode=auto" alt="visitors" />
 
 ## LICENSE 📜
 Tsukiyo is licensed under the MIT License (MIT). More info can be found [here](LICENSE.md).
