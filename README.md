@@ -38,20 +38,37 @@ Feel free to submit pull requests, create issues, or share your suggestions. Wha
 
 ## Todo
 - [ ] Auto clean-up chapter files once two chapters ahead from a downloaded chapter (goal: save phone storage).
-- [ ] Offline mode.
-- [ ] Night mode.
+- [ ] Night mode schedule.
 - [ ] Upgrade reader capacities.
 - [ ] Upgrade explorer page.
 - [ ] Enhance image manipulation in reader.
 - [ ] Enhance info screen chapters selection (some mangas have multiple version of the same chapter --> example: solo leveling).
 - [ ] Enhance new chapters verification to keep with the chapters specifications.
+- [x] Offline mode (kinda, need upgrades but technically implemented).
+- [x] Manual Night mode.
 - [x] Ability to download mangas in advance (not only the lazy loading).
 - [x] New version check at the start of the app.
 - [x] Fix low quality webtoon images.
 - [x] Basic notification system for new chapters.
 
 ## VISITORS
-<img src="https://count.getloli.com/@visitors?name=visitors&theme=moebooru&padding=7&offset=0&align=center&scale=1&pixelated=1&darkmode=auto" alt="visitors" />
+<img src="https://count.getloli.com/@hxpe-dev:tsukiyo?name=visitors&theme=moebooru&padding=7&offset=0&align=center&scale=1&pixelated=1&darkmode=auto" alt="visitors" />
 
 ## LICENSE 📜
 Tsukiyo is licensed under the MIT License (MIT). More info can be found [here](LICENSE.md).
+
+## Upcoming version changelog (version estimation: v1.2.1)
+This is the upcoming app release changelog. Those changes are not in the current latest release but are already commited on GitHub and will be in the next release.
+### Added
+- Offline detection.
+- Manual night mode.
+
+### Changed
+- 
+
+### Fixed
+- Many UI fixes.
+- Latest mangas now showing the actual latests mangas.
+
+### Misc
+- 
