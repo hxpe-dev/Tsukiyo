@@ -41,6 +41,7 @@ Feel free to submit pull requests, create issues, or share your suggestions. Wha
 - [ ] Offline mode.
 - [ ] Night mode.
 - [ ] Upgrade reader capacities.
+- [ ] Upgrade explorer page.
 - [ ] Enhance image manipulation in reader.
 - [ ] Enhance info screen chapters selection (some mangas have multiple version of the same chapter --> example: solo leveling).
 - [ ] Enhance new chapters verification to keep with the chapters specifications.

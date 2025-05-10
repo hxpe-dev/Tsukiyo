@@ -28,6 +28,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import RateLimitWarning from '../components/RateLimitWarning';
 import {useTheme} from '../context/ThemeContext';
 import {getTitleFromItem} from '../utils/languages';
+import PageLoading from '../components/PageLoading';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InfoScreenRouteProp = RouteProp<RootStackParamList, 'Info'>;
@@ -311,8 +312,7 @@ const InfoScreen = () => {
   };
 
   if (!manga) {
-    // eslint-disable-next-line react-native/no-inline-styles
-    return <Text style={{padding: 16}}>Loading manga info...</Text>;
+    return <PageLoading />;
   }
 
   const imageUrl = manga.coverFileName

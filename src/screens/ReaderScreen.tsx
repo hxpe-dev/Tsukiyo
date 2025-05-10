@@ -26,10 +26,12 @@ import PageLoading from '../components/PageLoading';
 import CropImage from '../components/CropImage';
 import {ReactNativeZoomableView} from '@openspacelabs/react-native-zoomable-view';
 import {
+  getNightMode,
   getReaderAnimations,
   getReaderOffset,
   getWebtoonSegmentHeight,
 } from '../utils/settingLoader';
+import Dimmer from '../components/Dimmer';
 
 type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
@@ -58,6 +60,7 @@ const ReaderScreen = () => {
 
   const [activeChapterId, setActiveChapterId] = useState(chapterId);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const imageUrlsRef = useRef(imageUrls);
   const [currentPage, setCurrentPage] = useState<number>(page || 0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +80,7 @@ const ReaderScreen = () => {
   const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
   const [readerOffset, setReaderOffset] = useState(0);
   const [maxSegmentHeight, setMaxSegmentHeight] = useState(1000);
+  const [nightMode, setNightMode] = useState(false);
   useEffect(() => {
     if (isExternal) {
       return;
@@ -86,6 +90,7 @@ const ReaderScreen = () => {
       setReaderAnimationsEnabled(await getReaderAnimations());
       setReaderOffset(await getReaderOffset());
       setMaxSegmentHeight(await getWebtoonSegmentHeight());
+      setNightMode(await getNightMode());
     }
 
     loadSetting();
@@ -236,6 +241,10 @@ const ReaderScreen = () => {
     mangaTitle,
   ]);
 
+  useEffect(() => {
+    imageUrlsRef.current = imageUrls;
+  }, [imageUrls]);
+
   const goToNextChapter = () => {
     const currentIndex = chapters.findIndex(ch => ch.id === activeChapterId);
     const nextChapter = chapters[currentIndex + 1];
@@ -287,7 +296,12 @@ const ReaderScreen = () => {
     if (viewableItems.length > 0) {
       const index = viewableItems[0].index;
       if (index !== null && index !== undefined) {
-        setCurrentPage(index);
+        // Idk why but doing this fixes the bug where when continuing reading a chapter at the last page made you go to the last page - 1.
+        if (page === imageUrlsRef.current.length - 1) {
+          setCurrentPage(index + 1);
+        } else {
+          setCurrentPage(index);
+        }
       }
     }
   }).current;
@@ -438,6 +452,7 @@ const ReaderScreen = () => {
 
   return (
     <View style={styles.container}>
+      {nightMode && <Dimmer />}
       <View style={styles.header}>
         <Text style={styles.mangaName}>{mangaTitle}</Text>
         <Text style={styles.chapterInfo}>

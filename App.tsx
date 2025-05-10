@@ -8,11 +8,14 @@ import BackgroundFetch from 'react-native-background-fetch';
 import {checkForNewChapters} from './src/api/mangadex';
 import {getNewChapterCheckFrequency} from './src/utils/settingLoader.ts';
 import VersionCheckModal from './src/components/VersionCheckModal.tsx';
+import { isConnected, updateNetworkStatus } from './src/utils/network.ts';
 
 const App = () => {
   const [fetchInterval, setFetchInterval] = useState(180);
 
   useEffect(() => {
+    updateNetworkStatus();
+
     async function loadSetting() {
       setFetchInterval(await getNewChapterCheckFrequency());
     }
@@ -21,7 +24,7 @@ const App = () => {
     // Setup notification channel
     setupNotificationChannel();
     // We check for new chapters at the app start
-    checkForNewChapters();
+    if (isConnected) {checkForNewChapters();}
 
     // Initialize Background Fetch
     const initBackgroundFetch = async () => {

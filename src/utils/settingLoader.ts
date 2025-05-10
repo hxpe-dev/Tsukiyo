@@ -1,5 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+export async function getNightMode(): Promise<boolean> {
+  const val = await AsyncStorage.getItem('night_mode');
+  return val === 'true';
+}
+
 export async function getVerticalCardAnimations(): Promise<boolean> {
   const val = await AsyncStorage.getItem('vertical_card_animations');
   return val === 'true' || val === null;

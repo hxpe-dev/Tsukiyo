@@ -110,13 +110,17 @@ export default function HomeScreen() {
         <PageLoading />
       ) : (
         <>
-          {currentlyReadingList.length > 0 && (
+          {currentlyReadingList.length > 0 ? (
             <HorizontalListDisplayer
               title="Currently Reading"
               list={currentlyReadingList}
               onCardClick={handleNavigateToReader}
               onCardLongPress={handleCardLongPress}
             />
+          ) : (
+            <Text style={styles.noReadingMangasText}>
+              No currently reading mangas.
+            </Text>
           )}
         </>
       )}
@@ -151,5 +155,12 @@ const useThemedStyles = (theme: any) =>
       marginTop: 16,
       paddingHorizontal: 16,
       alignItems: 'center',
+    },
+    noReadingMangasText: {
+      color: theme.textSecondary,
+      marginTop: 32,
+      fontSize: 16,
+      width: '100%',
+      textAlign: 'center',
     },
   });

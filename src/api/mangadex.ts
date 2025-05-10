@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee from '@notifee/react-native';
 import {MangaProgress} from '../types/mangadex';
 import {getLanguageName} from '../utils/languages';
+import {isConnected} from '../utils/network';
 
 const STORAGE_KEY = '@manga_progress';
 
@@ -50,6 +51,10 @@ export const fetchFromApi = async (
   params?: Record<string, any>,
   urlAddon = '',
 ) => {
+  if (!isConnected) {
+    throw new Error('NOT CONNECTED TO INTERNET');
+  }
+
   const now = Date.now();
   if (isRateLimited && now < rateLimitResetTime) {
     throw new Error('RATE_LIMITED');
@@ -76,13 +81,17 @@ export const searchManga = async (
   title: string,
   limit = 10,
   plusEighteen = true,
+  order: Record<string, 'asc' | 'desc'> = { relevance: 'desc' },
 ) => {
+  if (!isConnected) {
+    throw new Error('NOT CONNECTED TO INTERNET');
+  }
   const data = await fetchFromApi(
     '/manga',
     {
       title,
       limit,
-      order: {relevance: 'desc'},
+      order,
       contentRating: plusEighteen ? [] : ['safe', 'suggestive'],
       includes: ['cover_art'],
     },
@@ -124,6 +133,9 @@ export const getMangaChapters = async (
   page: number = 1,
   limit: number = 100,
 ) => {
+  if (!isConnected) {
+    throw new Error('NOT CONNECTED TO INTERNET');
+  }
   const data = await fetchFromApi(`/manga/${mangaId}/feed`, {
     translatedLanguage: [language], // Empty array means all available languages
     order: {chapter: 'asc'},
@@ -135,6 +147,9 @@ export const getMangaChapters = async (
 };
 
 export const getChapterImages = async (chapterId: string) => {
+  if (!isConnected) {
+    throw new Error('NOT CONNECTED TO INTERNET');
+  }
   const data = await fetchFromApi(`/at-home/server/${chapterId}`);
 
   const {baseUrl, chapter} = data;
@@ -149,8 +164,11 @@ export const getLatestManga = async (
   limit: number = 10,
   plusEighteen = true,
 ) => {
+  if (!isConnected) {
+    return [];
+  }
   try {
-    return searchManga('', limit, plusEighteen);
+    return searchManga('', limit, plusEighteen, { latestUploadedChapter: 'asc' });
   } catch (error) {
     console.error('Error fetching latest manga', error);
     return [];
@@ -160,6 +178,9 @@ export const getLatestManga = async (
 export const fetchCoverFileName = async (
   coverId: string,
 ): Promise<string | null> => {
+  if (!isConnected) {
+    return null;
+  }
   try {
     const coverData = await fetchFromApi(`/cover/${coverId}`);
     return coverData.data?.attributes?.fileName || null;
@@ -170,6 +191,9 @@ export const fetchCoverFileName = async (
 };
 
 export const getMangaById = async (mangaId: string) => {
+  if (!isConnected) {
+    throw new Error('NOT CONNECTED TO INTERNET');
+  }
   const data = await fetchFromApi(`/manga/${mangaId}`, {
     includes: ['cover_art'],
   });
@@ -199,6 +223,9 @@ export const getMangaById = async (mangaId: string) => {
 };
 
 export const checkForNewChapters = async () => {
+  if (!isConnected) {
+    throw new Error('NOT CONNECTED TO INTERNET');
+  }
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) {

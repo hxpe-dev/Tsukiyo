@@ -16,6 +16,7 @@ export default function SettingsScreen() {
   const {theme, toggleTheme, isDark} = useTheme();
   const styles = useThemedStyles(theme);
 
+  const [nightModeEnabled, setNightModeEnabled] = useState(false);
   const [horizontalCardAnimationsEnabled, setHorizontalCardAnimationsEnabled] =
     useState(true);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
@@ -35,6 +36,7 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     const loadSettings = async () => {
+      const nightModeSetting = await AsyncStorage.getItem('night_mode');
       const horizontalCardAnimationsSetting = await AsyncStorage.getItem(
         'horizontal_card_animations',
       );
@@ -56,6 +58,9 @@ export default function SettingsScreen() {
         'new_chapter_check_frequency',
       );
 
+      if (nightModeSetting !== null) {
+        setNightModeEnabled(nightModeSetting === 'true');
+      }
       if (horizontalCardAnimationsSetting !== null) {
         setHorizontalCardAnimationsEnabled(
           horizontalCardAnimationsSetting === 'true',
@@ -88,6 +93,12 @@ export default function SettingsScreen() {
 
     loadSettings();
   }, []);
+
+  const toggleNightMode = async () => {
+    const newValue = !nightModeEnabled;
+    setNightModeEnabled(newValue);
+    await AsyncStorage.setItem('night_mode', String(newValue));
+  };
 
   const toggleHorizontalCardAnimations = async () => {
     const newValue = !horizontalCardAnimationsEnabled;
@@ -156,6 +167,31 @@ export default function SettingsScreen() {
           value={isDark}
           onValueChange={toggleTheme}
           thumbColor={isDark ? theme.button : theme.error}
+          trackColor={{false: theme.border, true: theme.border}}
+        />
+      </View>
+
+      <View style={styles.settingRow}>
+        <View style={styles.settingsLabel}>
+          <Text style={styles.text}>Night Mode</Text>
+          <TouchableOpacity
+            onPress={() =>
+              showInfo(
+                'When enabled, Night Mode will dim the reader\'s colors for more comfortable viewing in the dark.',
+              )
+            }>
+            <Icon
+              name="info"
+              size={16}
+              color={theme.text}
+              style={styles.infoIcon}
+            />
+          </TouchableOpacity>
+        </View>
+        <Switch
+          value={nightModeEnabled}
+          onValueChange={toggleNightMode}
+          thumbColor={nightModeEnabled ? theme.button : theme.error}
           trackColor={{false: theme.border, true: theme.border}}
         />
       </View>

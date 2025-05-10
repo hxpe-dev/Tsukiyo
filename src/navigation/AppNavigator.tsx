@@ -8,6 +8,8 @@ import MainLayout from '../screens/MainLayout';
 import {Chapter, Manga} from '../types/mangadex';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
+import NotConnected from '../components/NotConnected';
+import {isConnected} from '../utils/network';
 
 export type RootStackParamList = {
   Main: {screen?: keyof MainStackParamList};
@@ -35,6 +37,7 @@ const AppNavigator = () => {
       // eslint-disable-next-line react-native/no-inline-styles
       style={{flex: 1, backgroundColor: theme.background}}
       edges={['top', 'bottom', 'left', 'right']}>
+      {!isConnected && <NotConnected />}
       <Stack.Navigator
         initialRouteName="Main"
         screenOptions={{headerShown: false}}>

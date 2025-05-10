@@ -110,6 +110,7 @@ export default function ExplorerScreen() {
         searchQuery.trim(),
         30,
         matureContentEnabled,
+        {relevance: 'desc'},
       );
       setSearchResults(results);
     } catch (error) {

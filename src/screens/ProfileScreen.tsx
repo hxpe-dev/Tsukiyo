@@ -119,7 +119,8 @@ export default function ProfileScreen() {
         <View style={styles.mangaRow}>
           <TouchableOpacity
             onPress={() => toggleExpand(mangaId)}
-            style={styles.flexRow}>
+            style={styles.flexRow}
+            hitSlop={13}>
             <Text
               style={styles.mangaTitle}
               numberOfLines={1}
