@@ -32,7 +32,8 @@ import {
   getWebtoonSegmentHeight,
 } from '../utils/settingLoader';
 import Dimmer from '../components/Dimmer';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/Feather';
 
 type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
@@ -40,11 +41,11 @@ const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 const headerHeight = 90;
 const progressHeight = 5;
-// const readerHeight = screenHeight - headerHeight - progressHeight;
 
 const ReaderScreen = () => {
   const insets = useSafeAreaInsets();
-  const readerHeight = screenHeight - insets.top - insets.bottom - headerHeight - progressHeight;
+  const readerHeight =
+    screenHeight - insets.top - insets.bottom - headerHeight - progressHeight;
   const route = useRoute<ReaderScreenRouteProp>();
   const {
     mangaId,
@@ -91,7 +92,7 @@ const ReaderScreen = () => {
     async function loadSetting() {
       setReaderAnimationsEnabled(await getReaderAnimations());
       setMaxSegmentHeight(await getWebtoonSegmentHeight());
-      setNightMode(await getNightMode() || await getNightModeBySchedule());
+      setNightMode((await getNightMode()) || (await getNightModeBySchedule()));
     }
 
     loadSetting();
@@ -389,11 +390,7 @@ const ReaderScreen = () => {
             onPress={handleTap}
             style={styles.flex1}
             disabled={zoomLevel !== 1}>
-            <View
-              style={[
-                styles.centeredImageWrapper,
-                {height: readerHeight},
-              ]}>
+            <View style={[styles.centeredImageWrapper, {height: readerHeight}]}>
               <Image
                 source={{uri: item}}
                 style={dynamicStyles.image}
@@ -437,7 +434,11 @@ const ReaderScreen = () => {
   }
 
   if (loading) {
-    return <PageLoading text={`Loading images for ${mangaTitle} chapter ${currentChapter?.attributes.chapter}...`}/>;
+    return (
+      <PageLoading
+        text={`Loading images for ${mangaTitle} chapter ${currentChapter?.attributes.chapter}...`}
+      />
+    );
   }
 
   if (error || imageUrls.length === 0) {
@@ -454,11 +455,25 @@ const ReaderScreen = () => {
     <View style={styles.container}>
       {nightMode && <Dimmer />}
       <View style={styles.header}>
-        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.mangaName}>{mangaTitle}</Text>
-        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.chapterInfo}>
-          Chapter {currentChapter?.attributes.chapter} — Page {currentPage + 1}{' '}
-          / {imageUrls.length}
-        </Text>
+        <View style={styles.leftHeader}>
+          <Text numberOfLines={1} ellipsizeMode="tail" style={styles.mangaName}>
+            {mangaTitle}
+          </Text>
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={styles.chapterInfo}>
+            Chapter {currentChapter?.attributes.chapter} — Page{' '}
+            {currentPage + 1} / {imageUrls.length}
+          </Text>
+        </View>
+        <View style={styles.rightHeader}>
+          {nightMode ? (
+            <Icon name="moon" size={24} color={theme.text} />
+          ) : (
+            <Icon name="sun" size={24} color={theme.text} />
+          )}
+        </View>
       </View>
 
       <FlatList
@@ -526,12 +541,22 @@ const useThemedStyles = (theme: any) =>
       backgroundColor: theme.background,
     },
     header: {
+      flexDirection: 'row',
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
       height: headerHeight,
       paddingHorizontal: 16,
       paddingVertical: 16,
       backgroundColor: theme.header,
+    },
+    leftHeader: {
+      width: '85%',
+      justifyContent: 'center',
+    },
+    rightHeader: {
+      width: '15%',
+      justifyContent: 'center',
+      alignItems: 'flex-end',
     },
     webview: {
       flex: 1,

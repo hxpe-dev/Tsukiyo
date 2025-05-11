@@ -11,15 +11,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTheme} from '../context/ThemeContext';
 import Icon from 'react-native-vector-icons/Feather';
 import {InfoPopup} from '../components/InfoPopup';
-import { TimePicker } from '../components/TimePicker';
-import { setShowRestartWarning, showRestartWarning } from '../utils/variables';
+import {TimePicker} from '../components/TimePicker';
+import {setShowRestartWarning, showRestartWarning} from '../utils/variables';
 
 export default function SettingsScreen() {
   const {theme, toggleTheme, isDark} = useTheme();
   const styles = useThemedStyles(theme);
 
   const [nightModeEnabled, setNightModeEnabled] = useState(false);
-  const [nightModeScheduleEnabled, setNightModeScheduleEnabled] = useState(false);
+  const [nightModeScheduleEnabled, setNightModeScheduleEnabled] =
+    useState(false);
   const [nightModeStart, setNightModeStart] = useState('22:00');
   const [nightModeEnd, setNightModeEnd] = useState('07:00');
   const [horizontalCardAnimationsEnabled, setHorizontalCardAnimationsEnabled] =
@@ -39,8 +40,12 @@ export default function SettingsScreen() {
   useEffect(() => {
     const loadSettings = async () => {
       const nightModeSetting = await AsyncStorage.getItem('night_mode');
-      const nightModeScheduleSetting = await AsyncStorage.getItem('night_mode_schedule');
-      const nightModeStartSetting = await AsyncStorage.getItem('night_mode_start');
+      const nightModeScheduleSetting = await AsyncStorage.getItem(
+        'night_mode_schedule',
+      );
+      const nightModeStartSetting = await AsyncStorage.getItem(
+        'night_mode_start',
+      );
       const nightModeEndSetting = await AsyncStorage.getItem('night_mode_end');
       const horizontalCardAnimationsSetting = await AsyncStorage.getItem(
         'horizontal_card_animations',
@@ -68,8 +73,12 @@ export default function SettingsScreen() {
       if (nightModeScheduleSetting !== null) {
         setNightModeScheduleEnabled(nightModeScheduleSetting === 'true');
       }
-      if (nightModeStartSetting !== null) {setNightModeStart(nightModeStartSetting);}
-      if (nightModeEndSetting !== null) {setNightModeEnd(nightModeEndSetting);}
+      if (nightModeStartSetting !== null) {
+        setNightModeStart(nightModeStartSetting);
+      }
+      if (nightModeEndSetting !== null) {
+        setNightModeEnd(nightModeEndSetting);
+      }
       if (horizontalCardAnimationsSetting !== null) {
         setHorizontalCardAnimationsEnabled(
           horizontalCardAnimationsSetting === 'true',
@@ -110,7 +119,8 @@ export default function SettingsScreen() {
     const newValue = !nightModeScheduleEnabled;
     setNightModeScheduleEnabled(newValue);
     await AsyncStorage.setItem('night_mode_schedule', String(newValue));
-    if (newValue === false) { // If the user disables night mode schedule, we need to set false the night mode by schedule instantly (else the change will take 1 minute to appear)
+    if (newValue === false) {
+      // If the user disables night mode schedule, we need to set false the night mode by schedule instantly (else the change will take 1 minute to appear)
       await AsyncStorage.setItem('night_mode_by_schedule', 'false');
     }
   };
@@ -196,7 +206,7 @@ export default function SettingsScreen() {
           <TouchableOpacity
             onPress={() =>
               showInfo(
-                'When enabled, Night Mode will dim the reader\'s colors for more comfortable viewing in the dark.',
+                "When enabled, Night Mode will dim the reader's colors for more comfortable viewing in the dark.",
               )
             }>
             <Icon
@@ -219,23 +229,38 @@ export default function SettingsScreen() {
         <View style={styles.settingsLabel}>
           <Text style={styles.text}>Night Mode Schedule</Text>
           <TouchableOpacity
-            onPress={() => showInfo('When enabled, Night Mode will automatically start and end at the specified start and end timestamps.')}>
-            <Icon name="info" size={16} color={theme.text} style={styles.infoIcon} />
+            onPress={() =>
+              showInfo(
+                'When enabled, Night Mode will automatically start and end at the specified start and end timestamps.',
+              )
+            }>
+            <Icon
+              name="info"
+              size={16}
+              color={theme.text}
+              style={styles.infoIcon}
+            />
           </TouchableOpacity>
         </View>
         {nightModeScheduleEnabled && (
           <View style={styles.nightModeInputRow}>
-            <TimePicker value={nightModeStart} onChange={updateNightModeStart} theme={theme} />
+            <TimePicker
+              value={nightModeStart}
+              onChange={updateNightModeStart}
+              theme={theme}
+            />
             <Text style={{color: theme.text}}>•</Text>
-            <TimePicker value={nightModeEnd} onChange={updateNightModeEnd} theme={theme} />
+            <TimePicker
+              value={nightModeEnd}
+              onChange={updateNightModeEnd}
+              theme={theme}
+            />
           </View>
         )}
         <Switch
           value={nightModeScheduleEnabled}
           onValueChange={toggleNightModeSchedule}
-          thumbColor={
-            nightModeScheduleEnabled ? theme.button : theme.error
-          }
+          thumbColor={nightModeScheduleEnabled ? theme.button : theme.error}
           trackColor={{false: theme.border, true: theme.border}}
         />
       </View>

@@ -271,7 +271,10 @@ const InfoScreen = () => {
           handleStartReading(item.id, item.attributes.externalUrl)
         }>
         <View style={styles.chapterRow}>
-          <Text style={styles.chapterTitle} numberOfLines={1} ellipsizeMode="tail">
+          <Text
+            style={styles.chapterTitle}
+            numberOfLines={1}
+            ellipsizeMode="tail">
             Chapter {item.attributes.chapter || '?'}{' '}
             {item.attributes.title ? ': ' + item.attributes.title : ''}
             {isExternal ? ' (External)' : ''}
@@ -312,7 +315,7 @@ const InfoScreen = () => {
   };
 
   if (!manga || hasMoreChapters) {
-    return <PageLoading text={`${chapters.length} chapters found...`}/>;
+    return <PageLoading text={`${chapters.length} chapters found...`} />;
   }
 
   const imageUrl = manga.coverFileName

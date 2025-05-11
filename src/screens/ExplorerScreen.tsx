@@ -182,7 +182,7 @@ export default function ExplorerScreen() {
   );
 
   if (loading) {
-    return <PageLoading text="Loading your explorer page..."/>;
+    return <PageLoading text="Loading your explorer page..." />;
   }
 
   return (

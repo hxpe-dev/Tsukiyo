@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {lightTheme, darkTheme} from '../utils/theme';
-import { getNightModeSchedule } from '../utils/settingLoader';
+import {getNightModeSchedule} from '../utils/settingLoader';
 
 interface ThemeContextType {
   theme: typeof lightTheme;
@@ -43,8 +43,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
       if (storedTheme === 'dark') {
         setIsDark(true);
       }
-      if (start) {setScheduleStart(start);}
-      if (end) {setScheduleEnd(end);}
+      if (start) {
+        setScheduleStart(start);
+      }
+      if (end) {
+        setScheduleEnd(end);
+      }
     };
     loadTheme();
   }, []);
@@ -52,8 +56,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
   // Night mode schedule checker
   useEffect(() => {
     let lastValue: string = '';
-    const interval = setInterval(async () => {
-      if (!(await getNightModeSchedule())) {return;}
+
+    const isScheduledNightMode = async () => {
+      if (!(await getNightModeSchedule())) {
+        return;
+      }
 
       const now = new Date();
       const minutesNow = now.getHours() * 60 + now.getMinutes();
@@ -72,6 +79,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
         await AsyncStorage.setItem('night_mode_by_schedule', newValue);
         lastValue = newValue;
       }
+    };
+
+    isScheduledNightMode(); // One first call on app start
+
+    const interval = setInterval(async () => {
+      isScheduledNightMode();
     }, 60000);
 
     return () => clearInterval(interval);

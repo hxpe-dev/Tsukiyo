@@ -81,7 +81,7 @@ export const searchManga = async (
   title: string,
   limit = 10,
   plusEighteen = true,
-  order: Record<string, 'asc' | 'desc'> = { relevance: 'desc' },
+  order: Record<string, 'asc' | 'desc'> = {relevance: 'desc'},
 ) => {
   if (!isConnected) {
     throw new Error('NOT CONNECTED TO INTERNET');
@@ -168,7 +168,9 @@ export const getLatestManga = async (
     return [];
   }
   try {
-    return searchManga('', limit, plusEighteen, { latestUploadedChapter: 'desc' });
+    return searchManga('', limit, plusEighteen, {
+      latestUploadedChapter: 'desc',
+    });
   } catch (error) {
     console.error('Error fetching latest manga', error);
     return [];

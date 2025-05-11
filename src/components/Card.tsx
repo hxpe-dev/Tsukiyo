@@ -108,7 +108,10 @@ const Card: React.FC<CardProps> = ({
   };
 
   return (
-    <TouchableOpacity onPress={onClick} onLongPress={onLongPress} delayLongPress={300}>
+    <TouchableOpacity
+      onPress={onClick}
+      onLongPress={onLongPress}
+      delayLongPress={300}>
       <Animated.View
         style={[
           dynamicStyles.itemContainer,

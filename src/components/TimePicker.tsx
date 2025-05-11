@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Modal,
@@ -14,19 +14,26 @@ interface TimePickerProps {
   theme: any;
 }
 
-export const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, theme }) => {
+export const TimePicker: React.FC<TimePickerProps> = ({
+  value,
+  onChange,
+  theme,
+}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedHour, setSelectedHour] = useState(value.split(':')[0]);
   const [selectedMinute, setSelectedMinute] = useState(value.split(':')[1]);
 
   const applyTime = () => {
-    const time = `${selectedHour.padStart(2, '0')}:${selectedMinute.padStart(2, '0')}`;
+    const time = `${selectedHour.padStart(2, '0')}:${selectedMinute.padStart(
+      2,
+      '0',
+    )}`;
     onChange(time);
     setModalVisible(false);
   };
 
   const generateNumberArray = (max: number) =>
-    Array.from({ length: max }, (_, i) => i.toString().padStart(2, '0'));
+    Array.from({length: max}, (_, i) => i.toString().padStart(2, '0'));
 
   return (
     <>
@@ -44,8 +51,10 @@ export const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, theme }
             <Text style={styles(theme).modalTitle}>Select Time</Text>
             <View style={styles(theme).pickerRow}>
               <ScrollView style={styles(theme).picker}>
-                {generateNumberArray(24).map((hour) => (
-                  <TouchableOpacity key={hour} onPress={() => setSelectedHour(hour)}>
+                {generateNumberArray(24).map(hour => (
+                  <TouchableOpacity
+                    key={hour}
+                    onPress={() => setSelectedHour(hour)}>
                     <Text
                       style={[
                         styles(theme).pickerItem,
@@ -58,8 +67,10 @@ export const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, theme }
               </ScrollView>
               <Text style={styles(theme).colon}>:</Text>
               <ScrollView style={styles(theme).picker}>
-                {generateNumberArray(60).map((min) => (
-                  <TouchableOpacity key={min} onPress={() => setSelectedMinute(min)}>
+                {generateNumberArray(60).map(min => (
+                  <TouchableOpacity
+                    key={min}
+                    onPress={() => setSelectedMinute(min)}>
                     <Text
                       style={[
                         styles(theme).pickerItem,
@@ -71,7 +82,9 @@ export const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, theme }
                 ))}
               </ScrollView>
             </View>
-            <TouchableOpacity style={styles(theme).applyButton} onPress={applyTime}>
+            <TouchableOpacity
+              style={styles(theme).applyButton}
+              onPress={applyTime}>
               <Text style={styles(theme).applyButtonText}>Apply</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setModalVisible(false)}>

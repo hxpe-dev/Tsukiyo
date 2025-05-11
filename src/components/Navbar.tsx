@@ -33,13 +33,10 @@ export default function Navbar() {
   const {theme, isDark} = useTheme();
   const styles = useThemedStyles(theme, isDark);
 
-  // currentScreen works but is not used for the moment
-  // const [currentScreen, setCurrentScreen] = useState<keyof MainStackParamList>('Home');
   const translateX = useRef(new Animated.Value(0)).current;
 
   const handleNavigate = (screen: keyof MainStackParamList, index: number) => {
     navigation.navigate('Main', {screen});
-    // setCurrentScreen(screen);
 
     Animated.spring(translateX, {
       toValue: (index - 1) * (buttonWidth + BUTTON_MARGIN_HORIZONTAL * 2),
@@ -49,7 +46,7 @@ export default function Navbar() {
 
   return (
     <View style={styles.navbar}>
-      {/* Sliding blue background */}
+      {/* Slider */}
       <Animated.View
         style={[
           styles.slider,
@@ -100,7 +97,7 @@ const useThemedStyles = (theme: any, isDark: any) =>
       shadowOffset: {width: 0, height: 6},
       shadowOpacity: 0.1,
       shadowRadius: 8,
-      elevation: isDark ? 1 : 10, // was 10
+      elevation: isDark ? 1 : 10,
       overflow: 'hidden',
     },
     button: {

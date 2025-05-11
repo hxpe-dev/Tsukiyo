@@ -3,7 +3,7 @@ import {View, StyleSheet, ActivityIndicator, Text} from 'react-native';
 import {useTheme} from '../context/ThemeContext';
 
 interface PageLoadingProps {
-  text?: string,
+  text?: string;
 }
 
 export default function PageLoading({text}: PageLoadingProps) {
