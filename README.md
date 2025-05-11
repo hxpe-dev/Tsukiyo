@@ -38,13 +38,13 @@ Feel free to submit pull requests, create issues, or share your suggestions. Wha
 
 ## Todo
 - [ ] Auto clean-up chapter files once two chapters ahead from a downloaded chapter (goal: save phone storage).
-- [ ] Night mode schedule.
 - [ ] Upgrade reader capacities.
 - [ ] Upgrade explorer page.
 - [ ] Enhance image manipulation in reader.
 - [ ] Enhance info screen chapters selection (some mangas have multiple version of the same chapter --> example: solo leveling).
 - [ ] Enhance new chapters verification to keep with the chapters specifications.
 - [ ] Advanced search system.
+- [x] Night mode schedule.
 - [x] Offline mode (kinda, need upgrades but technically implemented).
 - [x] Manual Night mode.
 - [x] Ability to download mangas in advance (not only the lazy loading).
@@ -61,20 +61,13 @@ Tsukiyo is licensed under the MIT License (MIT). More info can be found [here](L
 ## Upcoming version changelog (version estimation: v1.2.1)
 This is the changelog for the upcoming app release. These changes are not included in the current latest release but have already been committed to GitHub and will be part of the next release.
 ### Added
-- Offline detection.
-- Manual night mode.
-- Schedule night mode.
+- 
 
 ### Changed
-- Cards title is now 2 lines tall.
-- Page loading now includes a text description.
+- 
 
 ### Fixed
-- Removed the need for reader offset.
-- Fixed Info screen not always loading all chapters.
-- Chapter name too long is moving UI in Info screen.
-- Many UI fixes.
-- Latests mangas fetching incorrect mangas.
+- 
 
 ### Misc
-- Little performance changes.
+- 
