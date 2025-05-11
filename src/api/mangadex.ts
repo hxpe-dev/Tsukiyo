@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee from '@notifee/react-native';
 import {MangaProgress} from '../types/mangadex';
 import {getLanguageName} from '../utils/languages';
-import {isConnected} from '../utils/network';
+import {isConnected} from '../utils/variables';
 
 const STORAGE_KEY = '@manga_progress';
 
@@ -168,7 +168,7 @@ export const getLatestManga = async (
     return [];
   }
   try {
-    return searchManga('', limit, plusEighteen, { latestUploadedChapter: 'asc' });
+    return searchManga('', limit, plusEighteen, { latestUploadedChapter: 'desc' });
   } catch (error) {
     console.error('Error fetching latest manga', error);
     return [];

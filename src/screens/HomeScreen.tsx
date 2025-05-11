@@ -103,7 +103,13 @@ export default function HomeScreen() {
       style={styles.scrollView}
       contentContainerStyle={styles.scrollView}
       refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          colors={[theme.button]} // Android spinner colors
+          tintColor={theme.button} // iOS spinner color
+          progressBackgroundColor={theme.elevatedBackground} // Android background
+        />
       }>
       <Text style={styles.title}>Tsukiyo</Text>
       {loading ? (

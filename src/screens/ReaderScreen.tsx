@@ -27,11 +27,12 @@ import CropImage from '../components/CropImage';
 import {ReactNativeZoomableView} from '@openspacelabs/react-native-zoomable-view';
 import {
   getNightMode,
+  getNightModeBySchedule,
   getReaderAnimations,
-  getReaderOffset,
   getWebtoonSegmentHeight,
 } from '../utils/settingLoader';
 import Dimmer from '../components/Dimmer';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
@@ -39,9 +40,11 @@ const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 const headerHeight = 90;
 const progressHeight = 5;
-const readerHeight = screenHeight - headerHeight - progressHeight;
+// const readerHeight = screenHeight - headerHeight - progressHeight;
 
 const ReaderScreen = () => {
+  const insets = useSafeAreaInsets();
+  const readerHeight = screenHeight - insets.top - insets.bottom - headerHeight - progressHeight;
   const route = useRoute<ReaderScreenRouteProp>();
   const {
     mangaId,
@@ -78,7 +81,6 @@ const ReaderScreen = () => {
   const currentChapter = chapters.find(ch => ch.id === activeChapterId);
 
   const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
-  const [readerOffset, setReaderOffset] = useState(0);
   const [maxSegmentHeight, setMaxSegmentHeight] = useState(1000);
   const [nightMode, setNightMode] = useState(false);
   useEffect(() => {
@@ -88,9 +90,8 @@ const ReaderScreen = () => {
 
     async function loadSetting() {
       setReaderAnimationsEnabled(await getReaderAnimations());
-      setReaderOffset(await getReaderOffset());
       setMaxSegmentHeight(await getWebtoonSegmentHeight());
-      setNightMode(await getNightMode());
+      setNightMode(await getNightMode() || await getNightModeBySchedule());
     }
 
     loadSetting();
@@ -188,8 +189,6 @@ const ReaderScreen = () => {
         } else {
           setCurrentPage(0);
         }
-
-        preloadNextChapterImages();
       } catch (err) {
         if (err instanceof Error && err.message === 'RATE_LIMITED') {
           setRateLimited(true);
@@ -199,6 +198,7 @@ const ReaderScreen = () => {
         setError('Failed to load chapter images.');
       } finally {
         setLoading(false);
+        preloadNextChapterImages();
       }
     };
 
@@ -392,7 +392,7 @@ const ReaderScreen = () => {
             <View
               style={[
                 styles.centeredImageWrapper,
-                {height: readerHeight - readerOffset},
+                {height: readerHeight},
               ]}>
               <Image
                 source={{uri: item}}
@@ -437,7 +437,7 @@ const ReaderScreen = () => {
   }
 
   if (loading) {
-    return <PageLoading />;
+    return <PageLoading text={`Loading images for ${mangaTitle} chapter ${currentChapter?.attributes.chapter}...`}/>;
   }
 
   if (error || imageUrls.length === 0) {
@@ -454,8 +454,8 @@ const ReaderScreen = () => {
     <View style={styles.container}>
       {nightMode && <Dimmer />}
       <View style={styles.header}>
-        <Text style={styles.mangaName}>{mangaTitle}</Text>
-        <Text style={styles.chapterInfo}>
+        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.mangaName}>{mangaTitle}</Text>
+        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.chapterInfo}>
           Chapter {currentChapter?.attributes.chapter} — Page {currentPage + 1}{' '}
           / {imageUrls.length}
         </Text>
@@ -564,7 +564,7 @@ const useThemedStyles = (theme: any) =>
     },
     zoomContainer: {
       width: screenWidth,
-      height: readerHeight,
+      height: screenHeight,
       backgroundColor: theme.background,
     },
     scrollContent: {

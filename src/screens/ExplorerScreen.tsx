@@ -182,14 +182,20 @@ export default function ExplorerScreen() {
   );
 
   if (loading) {
-    return <PageLoading />;
+    return <PageLoading text="Loading your explorer page..."/>;
   }
 
   return (
     <View style={styles.container}>
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={[theme.button]} // Android spinner colors
+            tintColor={theme.button} // iOS spinner color
+            progressBackgroundColor={theme.elevatedBackground} // Android background
+          />
         }
         keyboardShouldPersistTaps="handled">
         <View style={styles.header}>

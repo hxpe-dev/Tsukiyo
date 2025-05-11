@@ -108,7 +108,7 @@ const Card: React.FC<CardProps> = ({
   };
 
   return (
-    <TouchableOpacity onPress={onClick} onLongPress={onLongPress}>
+    <TouchableOpacity onPress={onClick} onLongPress={onLongPress} delayLongPress={300}>
       <Animated.View
         style={[
           dynamicStyles.itemContainer,
@@ -118,7 +118,7 @@ const Card: React.FC<CardProps> = ({
           },
         ]}>
         <Image source={{uri: cover as string}} style={dynamicStyles.image} />
-        <Text numberOfLines={1} style={dynamicStyles.title}>
+        <Text numberOfLines={2} style={dynamicStyles.title}>
           {title as string}
         </Text>
         {chapterInfo && (

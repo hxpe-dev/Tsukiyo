@@ -271,7 +271,7 @@ const InfoScreen = () => {
           handleStartReading(item.id, item.attributes.externalUrl)
         }>
         <View style={styles.chapterRow}>
-          <Text style={styles.chapterTitle}>
+          <Text style={styles.chapterTitle} numberOfLines={1} ellipsizeMode="tail">
             Chapter {item.attributes.chapter || '?'}{' '}
             {item.attributes.title ? ': ' + item.attributes.title : ''}
             {isExternal ? ' (External)' : ''}
@@ -311,8 +311,8 @@ const InfoScreen = () => {
     }
   };
 
-  if (!manga) {
-    return <PageLoading />;
+  if (!manga || hasMoreChapters) {
+    return <PageLoading text={`${chapters.length} chapters found...`}/>;
   }
 
   const imageUrl = manga.coverFileName
@@ -491,6 +491,7 @@ const useThemedStyles = (theme: any) =>
     chapterTitle: {
       fontSize: 16,
       color: theme.text,
+      width: '88%',
     },
     utilIcon: {
       marginLeft: 8,

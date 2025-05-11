@@ -11,12 +11,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTheme} from '../context/ThemeContext';
 import Icon from 'react-native-vector-icons/Feather';
 import {InfoPopup} from '../components/InfoPopup';
+import { TimePicker } from '../components/TimePicker';
+import { setShowRestartWarning, showRestartWarning } from '../utils/variables';
 
 export default function SettingsScreen() {
   const {theme, toggleTheme, isDark} = useTheme();
   const styles = useThemedStyles(theme);
 
   const [nightModeEnabled, setNightModeEnabled] = useState(false);
+  const [nightModeScheduleEnabled, setNightModeScheduleEnabled] = useState(false);
+  const [nightModeStart, setNightModeStart] = useState('22:00');
+  const [nightModeEnd, setNightModeEnd] = useState('07:00');
   const [horizontalCardAnimationsEnabled, setHorizontalCardAnimationsEnabled] =
     useState(true);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
@@ -25,18 +30,18 @@ export default function SettingsScreen() {
   const [matureContentEnabled, setMatureContentEnabled] = useState(false);
   const [notifyOnNewVersionEnabled, setNotifyOnNewVersionEnabled] =
     useState(true);
-  const [readerOffset, setReaderOffset] = useState('0');
   const [webtoonSegmentHeight, setWebtoonSegmentHeight] = useState('1000');
   const [newChapterCheckFrequency, setNewChapterCheckFrequency] =
     useState('180');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [showRestartWarning, setShowRestartWarning] = useState(false);
   const [infoVisible, setInfoVisible] = useState(false);
   const [infoText, setInfoText] = useState('');
 
   useEffect(() => {
     const loadSettings = async () => {
       const nightModeSetting = await AsyncStorage.getItem('night_mode');
+      const nightModeScheduleSetting = await AsyncStorage.getItem('night_mode_schedule');
+      const nightModeStartSetting = await AsyncStorage.getItem('night_mode_start');
+      const nightModeEndSetting = await AsyncStorage.getItem('night_mode_end');
       const horizontalCardAnimationsSetting = await AsyncStorage.getItem(
         'horizontal_card_animations',
       );
@@ -50,7 +55,6 @@ export default function SettingsScreen() {
       const notifyOnNewVersionSetting = await AsyncStorage.getItem(
         'notify_new_version',
       );
-      const readerOffsetSetting = await AsyncStorage.getItem('reader_offset');
       const webtoonSegmentHeightSetting = await AsyncStorage.getItem(
         'webtoon_segment_height',
       );
@@ -61,6 +65,11 @@ export default function SettingsScreen() {
       if (nightModeSetting !== null) {
         setNightModeEnabled(nightModeSetting === 'true');
       }
+      if (nightModeScheduleSetting !== null) {
+        setNightModeScheduleEnabled(nightModeScheduleSetting === 'true');
+      }
+      if (nightModeStartSetting !== null) {setNightModeStart(nightModeStartSetting);}
+      if (nightModeEndSetting !== null) {setNightModeEnd(nightModeEndSetting);}
       if (horizontalCardAnimationsSetting !== null) {
         setHorizontalCardAnimationsEnabled(
           horizontalCardAnimationsSetting === 'true',
@@ -80,9 +89,6 @@ export default function SettingsScreen() {
       if (notifyOnNewVersionSetting !== null) {
         setNotifyOnNewVersionEnabled(notifyOnNewVersionSetting === 'true');
       }
-      if (readerOffsetSetting !== null) {
-        setReaderOffset(readerOffsetSetting);
-      }
       if (webtoonSegmentHeightSetting !== null) {
         setWebtoonSegmentHeight(webtoonSegmentHeightSetting);
       }
@@ -98,6 +104,27 @@ export default function SettingsScreen() {
     const newValue = !nightModeEnabled;
     setNightModeEnabled(newValue);
     await AsyncStorage.setItem('night_mode', String(newValue));
+  };
+
+  const toggleNightModeSchedule = async () => {
+    const newValue = !nightModeScheduleEnabled;
+    setNightModeScheduleEnabled(newValue);
+    await AsyncStorage.setItem('night_mode_schedule', String(newValue));
+    if (newValue === false) { // If the user disables night mode schedule, we need to set false the night mode by schedule instantly (else the change will take 1 minute to appear)
+      await AsyncStorage.setItem('night_mode_by_schedule', 'false');
+    }
+  };
+
+  const updateNightModeStart = async (value: string) => {
+    setNightModeStart(value);
+    setShowRestartWarning(true);
+    await AsyncStorage.setItem('night_mode_start', value);
+  };
+
+  const updateNightModeEnd = async (value: string) => {
+    setNightModeEnd(value);
+    setShowRestartWarning(true);
+    await AsyncStorage.setItem('night_mode_end', value);
   };
 
   const toggleHorizontalCardAnimations = async () => {
@@ -128,14 +155,6 @@ export default function SettingsScreen() {
     const newValue = !notifyOnNewVersionEnabled;
     setNotifyOnNewVersionEnabled(newValue);
     await AsyncStorage.setItem('notify_new_version', String(newValue));
-  };
-
-  const updateReaderOffset = async (value: string) => {
-    // Only allow numeric input
-    if (/^\d*$/.test(value)) {
-      setReaderOffset(value);
-      await AsyncStorage.setItem('reader_offset', value);
-    }
   };
 
   const updateWebtoonSegmentHeight = async (value: string) => {
@@ -197,6 +216,31 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.settingRow}>
+        <View style={styles.settingsLabel}>
+          <Text style={styles.text}>Night Mode Schedule</Text>
+          <TouchableOpacity
+            onPress={() => showInfo('When enabled, Night Mode will automatically start and end at the specified start and end timestamps.')}>
+            <Icon name="info" size={16} color={theme.text} style={styles.infoIcon} />
+          </TouchableOpacity>
+        </View>
+        {nightModeScheduleEnabled && (
+          <View style={styles.nightModeInputRow}>
+            <TimePicker value={nightModeStart} onChange={updateNightModeStart} theme={theme} />
+            <Text style={{color: theme.text}}>•</Text>
+            <TimePicker value={nightModeEnd} onChange={updateNightModeEnd} theme={theme} />
+          </View>
+        )}
+        <Switch
+          value={nightModeScheduleEnabled}
+          onValueChange={toggleNightModeSchedule}
+          thumbColor={
+            nightModeScheduleEnabled ? theme.button : theme.error
+          }
+          trackColor={{false: theme.border, true: theme.border}}
+        />
+      </View>
+
+      <View style={styles.settingRow}>
         <Text style={styles.text}>Horizontal Card Animations</Text>
         <Switch
           value={horizontalCardAnimationsEnabled}
@@ -247,31 +291,6 @@ export default function SettingsScreen() {
           onValueChange={toggleNotifyNewVersion}
           thumbColor={notifyOnNewVersionEnabled ? theme.button : theme.error}
           trackColor={{false: theme.border, true: theme.border}}
-        />
-      </View>
-
-      <View style={styles.settingRow}>
-        <View style={styles.settingsLabel}>
-          <Text style={styles.text}>Reader Offset</Text>
-          <TouchableOpacity
-            onPress={() =>
-              showInfo(
-                'Controls how many pixels the manga image is offset upward from the bottom. This setting helps compensate for a known issue where the manga image is not vertically centered.',
-              )
-            }>
-            <Icon
-              name="info"
-              size={16}
-              color={theme.text}
-              style={styles.infoIcon}
-            />
-          </TouchableOpacity>
-        </View>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={readerOffset}
-          onChangeText={updateReaderOffset}
         />
       </View>
 
@@ -391,5 +410,12 @@ const useThemedStyles = (theme: any) =>
     },
     infoIcon: {
       marginLeft: 6,
+    },
+    nightModeInputRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      flex: 1,
+      gap: 5,
     },
   });

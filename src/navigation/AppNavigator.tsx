@@ -9,7 +9,7 @@ import {Chapter, Manga} from '../types/mangadex';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import NotConnected from '../components/NotConnected';
-import {isConnected} from '../utils/network';
+import {isConnected} from '../utils/variables';
 
 export type RootStackParamList = {
   Main: {screen?: keyof MainStackParamList};

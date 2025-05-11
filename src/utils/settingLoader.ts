@@ -5,6 +5,16 @@ export async function getNightMode(): Promise<boolean> {
   return val === 'true';
 }
 
+export async function getNightModeBySchedule(): Promise<boolean> {
+  const val = await AsyncStorage.getItem('night_mode_by_schedule');
+  return val === 'true';
+}
+
+export async function getNightModeSchedule(): Promise<boolean> {
+  const val = await AsyncStorage.getItem('night_mode_schedule');
+  return val === 'true';
+}
+
 export async function getVerticalCardAnimations(): Promise<boolean> {
   const val = await AsyncStorage.getItem('vertical_card_animations');
   return val === 'true' || val === null;
@@ -28,11 +38,6 @@ export async function getNotifyOnNewVersion(): Promise<boolean> {
 export async function getReaderAnimations(): Promise<boolean> {
   const val = await AsyncStorage.getItem('reader_animations');
   return val === 'true' || val === null;
-}
-
-export async function getReaderOffset(): Promise<number> {
-  const val = await AsyncStorage.getItem('reader_offset');
-  return parseInt(val ?? '0', 10);
 }
 
 export async function getWebtoonSegmentHeight(): Promise<number> {
