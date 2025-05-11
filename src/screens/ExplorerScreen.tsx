@@ -255,7 +255,7 @@ export default function ExplorerScreen() {
         ) : (
           latestManga.length > 0 && (
             <HorizontalListDisplayer
-              title="Latests Mangas"
+              title="Latest Manga"
               list={latestManga}
               onCardClick={handleNavigateToInfo}
               onCardLongPress={handleNavigateToInfo}
