@@ -297,12 +297,7 @@ const ReaderScreen = () => {
     if (viewableItems.length > 0) {
       const index = viewableItems[0].index;
       if (index !== null && index !== undefined) {
-        // Idk why but doing this fixes the bug where when continuing reading a chapter at the last page made you go to the last page - 1.
-        if (page === imageUrlsRef.current.length - 1) {
-          setCurrentPage(index + 1);
-        } else {
-          setCurrentPage(index);
-        }
+        setCurrentPage(index);
       }
     }
   }).current;
@@ -487,7 +482,7 @@ const ReaderScreen = () => {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={isWebtoon.current}
         onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{viewAreaCoveragePercentThreshold: 0}}
+        viewabilityConfig={{viewAreaCoveragePercentThreshold: 50}}
         initialScrollIndex={!isWebtoon.current ? currentPage : undefined}
         getItemLayout={
           !isWebtoon.current

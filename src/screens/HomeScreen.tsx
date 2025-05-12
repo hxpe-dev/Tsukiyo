@@ -125,7 +125,7 @@ export default function HomeScreen() {
             />
           ) : (
             <Text style={styles.noReadingMangasText}>
-              No currently reading mangas.
+              You're not reading any manga right now.
             </Text>
           )}
         </>

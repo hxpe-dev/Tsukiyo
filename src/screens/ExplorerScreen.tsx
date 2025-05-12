@@ -16,7 +16,7 @@ import {useNavigation} from '@react-navigation/native';
 import HorizontalListDisplayer from '../components/HorizontalListDisplayer';
 import Card from '../components/Card';
 import {DisplayableManga, Manga} from '../types/mangadex';
-import {getLatestManga, searchManga, isApiRateLimited} from '../api/mangadex';
+import {getLatestManga, searchManga, isApiRateLimited, getMostFollowedManga} from '../api/mangadex';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import RateLimitWarning from '../components/RateLimitWarning';
@@ -41,6 +41,7 @@ export default function ExplorerScreen() {
   const styles = useThemedStyles(theme);
 
   const [latestManga, setLatestManga] = useState<Manga[]>([]);
+  const [mostFollowedManga, setMostFollowedManga] = useState<Manga[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
@@ -54,7 +55,7 @@ export default function ExplorerScreen() {
       setVerticalCardAnimationsEnabled(await getVerticalCardAnimations());
       const matureContent = await getMatureContent();
       setMatureContentEnabled(matureContent);
-      loadLatestManga(matureContent);
+      loadMangas(matureContent);
     }
 
     loadSetting();
@@ -66,15 +67,16 @@ export default function ExplorerScreen() {
   const [viewableItems, setViewableItems] = useState<ViewToken[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
-  const loadLatestManga = async (matureContent: boolean = true) => {
+  const loadMangas = async (matureContent: boolean = true) => {
     if (isApiRateLimited()) {
       setRateLimited(true);
       return;
     }
-    setLoading(true);
     try {
-      const mangaData = await getLatestManga(15, matureContent);
-      setLatestManga(mangaData);
+      const latestMangaData = await getLatestManga(30, matureContent);
+      setLatestManga(latestMangaData);
+      const mostFollowedMangaData = await getMostFollowedManga(30, matureContent);
+      setMostFollowedManga(mostFollowedMangaData);
     } catch (error) {
       if (error instanceof Error && error.message === 'RATE_LIMITED') {
         setRateLimited(true);
@@ -92,7 +94,7 @@ export default function ExplorerScreen() {
     setSearchResults([]);
     setSearchQuery('');
     setHasSearched(false);
-    loadLatestManga(matureContentEnabled);
+    loadMangas(matureContentEnabled);
   };
 
   const handleSearch = async () => {
@@ -253,15 +255,25 @@ export default function ExplorerScreen() {
             </Text>
           )
         ) : (
-          latestManga.length > 0 && (
+        <>
+          {latestManga.length > 0 && (
             <HorizontalListDisplayer
               title="Latest Manga"
               list={latestManga}
               onCardClick={handleNavigateToInfo}
               onCardLongPress={handleNavigateToInfo}
             />
-          )
-        )}
+          )}
+          {mostFollowedManga.length > 0 && (
+            <HorizontalListDisplayer
+              title="Most Followed Manga"
+              list={mostFollowedManga}
+              onCardClick={handleNavigateToInfo}
+              onCardLongPress={handleNavigateToInfo}
+            />
+          )}
+        </>
+      )}
       </ScrollView>
       {rateLimited && <RateLimitWarning />}
     </View>

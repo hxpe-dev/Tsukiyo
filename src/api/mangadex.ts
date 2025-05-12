@@ -177,6 +177,23 @@ export const getLatestManga = async (
   }
 };
 
+export const getMostFollowedManga = async (
+  limit: number = 10,
+  plusEighteen = true,
+) => {
+  if (!isConnected) {
+    return [];
+  }
+  try {
+    return searchManga('', limit, plusEighteen, {
+      followedCount: 'desc',
+    });
+  } catch (error) {
+    console.error('Error fetching msot followed manga', error);
+    return [];
+  }
+};
+
 export const fetchCoverFileName = async (
   coverId: string,
 ): Promise<string | null> => {

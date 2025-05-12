@@ -51,6 +51,7 @@ Feel free to submit pull requests, create issues, or share your suggestions. Wha
 - [ ] Enhance info screen chapters selection (some mangas have multiple version of the same chapter --> example: solo leveling).
 - [ ] Enhance new chapters verification to keep with the chapters specifications.
 - [ ] Advanced search system.
+- [ ] Fix reader issues (continue reading from last page not working)
 - [x] Night mode schedule.
 - [x] Offline mode (kinda, need upgrades but technically implemented).
 - [x] Manual Night mode.
@@ -65,13 +66,13 @@ Feel free to submit pull requests, create issues, or share your suggestions. Wha
 ## LICENSE 📜
 Tsukiyo is licensed under the MIT License (MIT). More info can be found [here](LICENSE.md).
 
-## Upcoming version changelog (version estimation: unknown)
+## Upcoming version changelog (version estimation: 1.2.2)
 This is the changelog for the upcoming app release. These changes are not included in the current latest release but have already been committed to GitHub and will be part of the next release.
 ### Added
-- 
+- Most followed mangas in explorer page.
 
 ### Changed
-- 
+- Home screen text when no currently reading manga.
 
 ### Fixed
 - 

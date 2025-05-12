@@ -76,6 +76,7 @@ const CropImage: React.FC<CropImageProps> = ({uri, maxSegmentHeight}) => {
             key={index}
             source={{uri: segmentUri}}
             style={[styles.imageSegment, {height: segmentHeight}]}
+            fadeDuration={0}
           />
         );
       })}
