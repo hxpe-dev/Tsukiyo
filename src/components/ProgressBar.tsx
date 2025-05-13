@@ -1,19 +1,18 @@
 import React from 'react';
-import {View, StyleSheet, Dimensions, TouchableOpacity} from 'react-native';
+import {View, StyleSheet, Dimensions} from 'react-native';
 import {useTheme} from '../context/ThemeContext';
 
 const screenWidth = Dimensions.get('window').width;
+const HORIZONTAL_MARGIN = 0.5;
 
 const ProgressBar = ({
   height,
   currentPage,
   totalPages,
-  onPressPage,
 }: {
   height: number;
   currentPage: number;
   totalPages: number;
-  onPressPage: (pageIndex: number) => void;
 }) => {
   const {theme} = useTheme();
   const styles = useThemedStyles(theme);
@@ -23,28 +22,25 @@ const ProgressBar = ({
   }
 
   const barWidth = screenWidth;
-  const blockWidth = barWidth / totalPages;
+  const totalMargin = 2 * HORIZONTAL_MARGIN * totalPages;
+  const blockWidth = (barWidth - totalMargin) / totalPages;
 
   return (
     <View style={[styles.progressBarContainer, {height}]}>
       {Array.from({length: totalPages}).map((_, index) => (
-        <TouchableOpacity
+        <View
           key={index}
-          style={{width: blockWidth}}
-          onPress={() => onPressPage(index)}
-          activeOpacity={0.7}>
-          <View
-            style={[
-              styles.progressBlock,
-              {
-                backgroundColor:
-                  index <= currentPage
-                    ? theme.textSecondary
-                    : theme.elevatedBackground,
-              },
-            ]}
-          />
-        </TouchableOpacity>
+          style={[
+            styles.progressBlock,
+            {
+              backgroundColor:
+                index <= currentPage
+                  ? theme.textSecondary
+                  : theme.elevatedBackground,
+              width: blockWidth,
+            },
+          ]}
+        />
       ))}
     </View>
   );
@@ -61,7 +57,7 @@ const useThemedStyles = (theme: any) =>
 
     progressBlock: {
       height: '100%',
-      marginHorizontal: 0.5,
+      marginHorizontal: HORIZONTAL_MARGIN,
       borderRadius: 2,
     },
   });

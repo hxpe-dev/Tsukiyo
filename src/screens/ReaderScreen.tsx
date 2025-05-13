@@ -24,7 +24,6 @@ import ProgressBar from '../components/ProgressBar';
 import {useTheme} from '../context/ThemeContext';
 import PageLoading from '../components/PageLoading';
 import CropImage from '../components/CropImage';
-import {ReactNativeZoomableView} from '@openspacelabs/react-native-zoomable-view';
 import {
   getNightMode,
   getNightModeBySchedule,
@@ -34,10 +33,10 @@ import {
 import Dimmer from '../components/Dimmer';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
+import MangaReader from '../components/MangaReader';
 
 type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
-const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 const headerHeight = 90;
 const progressHeight = 5;
@@ -64,19 +63,13 @@ const ReaderScreen = () => {
 
   const [activeChapterId, setActiveChapterId] = useState(chapterId);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const imageUrlsRef = useRef(imageUrls);
   const [currentPage, setCurrentPage] = useState<number>(page || 0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showNextChapterButton, setShowNextChapterButton] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1);
   const shouldSetInitialPage = useRef(true);
   const enterFromPreviousChapter = useRef(false);
-  const flatListRef = useRef<FlatList>(null);
   const isWebtoon = useRef(false);
-  const [imageDimensions, setImageDimensions] = useState<{
-    [key: string]: {width: number; height: number};
-  }>({});
   const [rateLimited, setRateLimited] = useState(false);
 
   const currentChapter = chapters.find(ch => ch.id === activeChapterId);
@@ -242,10 +235,6 @@ const ReaderScreen = () => {
     mangaTitle,
   ]);
 
-  useEffect(() => {
-    imageUrlsRef.current = imageUrls;
-  }, [imageUrls]);
-
   const goToNextChapter = () => {
     const currentIndex = chapters.findIndex(ch => ch.id === activeChapterId);
     const nextChapter = chapters[currentIndex + 1];
@@ -280,19 +269,6 @@ const ReaderScreen = () => {
     }
   };
 
-  const loadImageDimensions = (uri: string) => {
-    Image.getSize(uri, (width, height) => {
-      setImageDimensions(prev => ({
-        ...prev,
-        [uri]: {width, height},
-      }));
-    });
-  };
-
-  useEffect(() => {
-    imageUrls.forEach(uri => loadImageDimensions(uri));
-  }, [imageUrls]);
-
   const onViewableItemsChanged = useRef(({viewableItems}: any) => {
     if (viewableItems.length > 0) {
       const index = viewableItems[0].index;
@@ -303,102 +279,16 @@ const ReaderScreen = () => {
   }).current;
 
   const renderItem = ({item, index}: {item: string; index: number}) => {
-    const dimensions = imageDimensions[item];
-    if (!dimensions) {
-      return null;
-    } // Skip rendering until the dimensions are loaded
-
-    // For webtoons:
-    if (isWebtoon.current) {
-      return (
-        <View>
-          <CropImage uri={item} maxSegmentHeight={maxSegmentHeight} />
-          {index === imageUrls.length - 1 && showNextChapterButton && (
-            <View style={styles.nextChapterButtonWrapper}>
-              <TouchableOpacity
-                onPress={goToNextChapter}
-                style={styles.nextChapterButton}>
-                <Text style={styles.nextChapterButtonText}>Next Chapter</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      );
-    }
-
-    // From now on this is for mangas:
-
-    const handleTap = (event: any) => {
-      const tapX = event.nativeEvent.locationX;
-      if (tapX < screenWidth / 3) {
-        if (index > 0) {
-          flatListRef.current?.scrollToIndex({
-            index: index - 1,
-            animated: readerAnimationsEnabled,
-          });
-        } else {
-          goToPreviousChapter();
-        }
-      } else if (tapX > (screenWidth * 2) / 3) {
-        if (index < imageUrls.length - 1) {
-          flatListRef.current?.scrollToIndex({
-            index: index + 1,
-            animated: readerAnimationsEnabled,
-          });
-        } else {
-          goToNextChapter();
-        }
-      }
-    };
-
-    const aspectRatio = dimensions.width / dimensions.height;
-    let finalWidth = screenWidth;
-    let finalHeight = screenWidth / aspectRatio;
-
-    if (finalHeight > readerHeight) {
-      finalHeight = readerHeight;
-      finalWidth = readerHeight * aspectRatio;
-    }
-
-    const dynamicStyles = {
-      image: {
-        width: finalWidth,
-        height: finalHeight,
-      },
-    };
-
     return (
-      <View style={styles.zoomContainer}>
-        <ReactNativeZoomableView
-          maxZoom={3}
-          minZoom={1}
-          zoomStep={0.5}
-          initialZoom={1}
-          bindToBorders={true}
-          doubleTapZoomToCenter={true}
-          onZoomAfter={(event, gestureState, zoomableViewEventObject) => {
-            setZoomLevel(zoomableViewEventObject.zoomLevel);
-          }}
-          style={styles.flex1}>
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={handleTap}
-            style={styles.flex1}
-            disabled={zoomLevel !== 1}>
-            <View style={[styles.centeredImageWrapper, {height: readerHeight}]}>
-              <Image
-                source={{uri: item}}
-                style={dynamicStyles.image}
-                resizeMode="contain"
-                fadeDuration={0}
-              />
-            </View>
-          </TouchableOpacity>
-        </ReactNativeZoomableView>
-
-        {zoomLevel !== 1 && (
-          <View style={styles.zoomIndicator}>
-            <Text style={styles.zoomText}>{zoomLevel.toFixed(2)}x</Text>
+      <View>
+        <CropImage uri={item} maxSegmentHeight={maxSegmentHeight} />
+        {index === imageUrls.length - 1 && showNextChapterButton && (
+          <View style={styles.nextChapterButtonWrapper}>
+            <TouchableOpacity
+              onPress={goToNextChapter}
+              style={styles.nextChapterButton}>
+              <Text style={styles.nextChapterButtonText}>Next Chapter</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -471,57 +361,45 @@ const ReaderScreen = () => {
         </View>
       </View>
 
-      <FlatList
-        ref={flatListRef}
-        data={imageUrls}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `${item}-${index}`}
-        key={isWebtoon.current ? 'webtoon' : 'manga'}
-        horizontal={!isWebtoon.current}
-        pagingEnabled={!isWebtoon.current}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={isWebtoon.current}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{viewAreaCoveragePercentThreshold: 50}}
-        initialScrollIndex={!isWebtoon.current ? currentPage : undefined}
-        getItemLayout={
-          !isWebtoon.current
-            ? (_, index) => ({
-                length: screenWidth,
-                offset: screenWidth * index,
-                index,
-              })
-            : undefined
-        }
-        onEndReached={
-          isWebtoon.current ? () => setShowNextChapterButton(true) : undefined
-        }
-        onEndReachedThreshold={0.9}
-        scrollEnabled={zoomLevel === 1}
-        // PERFORMANCE SETTINGS START
-        removeClippedSubviews={Platform.OS === 'android'}
-        scrollEventThrottle={16}
-        initialNumToRender={isWebtoon.current ? 5 : 3}
-        maxToRenderPerBatch={isWebtoon.current ? 5 : 3}
-        windowSize={isWebtoon.current ? undefined : 3}
-        updateCellsBatchingPeriod={5}
-        // PERFORMANCE SETTINGS END
-      />
+      {isWebtoon.current ? (
+        <FlatList
+          data={imageUrls}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item}-${index}`}
+          key={'webtoon'}
+          horizontal={false}
+          pagingEnabled={true}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={{viewAreaCoveragePercentThreshold: 50}}
+          onEndReached={() => setShowNextChapterButton(true)}
+          onEndReachedThreshold={0.9}
+          // PERFORMANCE SETTINGS START
+          removeClippedSubviews={Platform.OS === 'android'}
+          scrollEventThrottle={16}
+          initialNumToRender={5}
+          maxToRenderPerBatch={5}
+          updateCellsBatchingPeriod={5}
+          // PERFORMANCE SETTINGS END
+        />
+      ) : (
+        <MangaReader
+          imageUrls={imageUrls}
+          readerHeight={readerHeight}
+          onPageChange={setCurrentPage}
+          initialPage={currentPage}
+          onNextChapter={goToNextChapter}
+          onPreviousChapter={goToPreviousChapter}
+          animations={readerAnimationsEnabled}
+        />
+      )}
 
       {!isWebtoon.current && (
         <ProgressBar
           height={progressHeight}
           currentPage={currentPage}
           totalPages={imageUrls.length}
-          onPressPage={pageIndex => {
-            setCurrentPage(pageIndex);
-            if (!isWebtoon.current) {
-              flatListRef.current?.scrollToIndex({
-                index: pageIndex,
-                animated: readerAnimationsEnabled,
-              });
-            }
-          }}
         />
       )}
       {rateLimited && <RateLimitWarning />}
@@ -567,10 +445,6 @@ const useThemedStyles = (theme: any) =>
       color: theme.text,
       fontWeight: 'normal',
     },
-    centeredImageWrapper: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     centered: {
       flex: 1,
       justifyContent: 'center',
@@ -581,15 +455,6 @@ const useThemedStyles = (theme: any) =>
       fontSize: 16,
       textAlign: 'center',
       paddingHorizontal: 20,
-    },
-    zoomContainer: {
-      width: screenWidth,
-      height: screenHeight,
-      backgroundColor: theme.background,
-    },
-    scrollContent: {
-      flexGrow: 1,
-      justifyContent: 'center',
     },
     nextChapterButtonWrapper: {
       alignItems: 'center',
@@ -604,25 +469,6 @@ const useThemedStyles = (theme: any) =>
     nextChapterButtonText: {
       color: theme.buttonText,
       fontSize: 16,
-      fontWeight: 'bold',
-    },
-    flex1: {
-      flex: 1,
-    },
-    zoomIndicator: {
-      position: 'absolute',
-      top: '10%',
-      left: '50%',
-      transform: [{translateX: -30}, {translateY: -15}],
-      backgroundColor: 'rgba(0,0,0,0.6)',
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 12,
-      zIndex: 999,
-    },
-    zoomText: {
-      color: theme.text,
-      fontSize: 12,
       fontWeight: 'bold',
     },
   });

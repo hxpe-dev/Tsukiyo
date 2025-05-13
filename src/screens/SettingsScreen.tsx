@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import {InfoPopup} from '../components/InfoPopup';
 import {TimePicker} from '../components/TimePicker';
 import {setShowRestartWarning, showRestartWarning} from '../utils/variables';
+import notifee from '@notifee/react-native';
 
 export default function SettingsScreen() {
   const {theme, toggleTheme, isDark} = useTheme();
@@ -163,6 +164,16 @@ export default function SettingsScreen() {
 
   const toggleNotifyNewVersion = async () => {
     const newValue = !notifyOnNewVersionEnabled;
+    if (newValue === true) {
+      await notifee.displayNotification({
+        title: 'Hey there!',
+        body: 'Thank you very much for enabling the new app version notification!',
+        android: {
+          channelId: 'new-chapters',
+          smallIcon: 'app',
+        },
+      });
+    }
     setNotifyOnNewVersionEnabled(newValue);
     await AsyncStorage.setItem('notify_new_version', String(newValue));
   };

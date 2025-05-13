@@ -57,7 +57,6 @@ export default function ExplorerScreen() {
       setMatureContentEnabled(matureContent);
       loadMangas(matureContent);
     }
-
     loadSetting();
   }, []);
 
@@ -73,9 +72,9 @@ export default function ExplorerScreen() {
       return;
     }
     try {
-      const latestMangaData = await getLatestManga(30, matureContent);
+      const latestMangaData = await getLatestManga(20, matureContent);
       setLatestManga(latestMangaData);
-      const mostFollowedMangaData = await getMostFollowedManga(30, matureContent);
+      const mostFollowedMangaData = await getMostFollowedManga(20, matureContent);
       setMostFollowedManga(mostFollowedMangaData);
     } catch (error) {
       if (error instanceof Error && error.message === 'RATE_LIMITED') {

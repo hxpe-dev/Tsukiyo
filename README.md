@@ -14,7 +14,7 @@ Tsukiyo is a manga reading app using the [mangadex api](https://api.mangadex.org
 
 > **Tsukiyo (月夜; Tsuki-yo)** literally means "moonlit night" in Japanese — a serene and poetic image of the moon casting its glow across the darkness.
 
-⚠️ **Note:** This app is primarily tested on Android. It has **not been tested on iOS**, and behavior on Apple devices is **not guaranteed**.
+⚠️ **Note:** This app is primarily tested on Android. It has **not been tested on iOS**, and behavior on Apple devices is **not guaranteed**. If anyone is able to test building and running it on iOS, **feedback would be greatly appreciated**.
 
 ## Terms of Use
 By downloading, installing, or using this application, you agree to the following terms:
@@ -45,13 +45,13 @@ Feel free to submit pull requests, create issues, or share your suggestions. Wha
 
 ## Todo
 - [ ] Auto clean-up chapter files once two chapters ahead from a downloaded chapter (goal: save phone storage).
-- [ ] Upgrade reader capacities.
+- [ ] Upgrade reader capacities (image manipulation, chapters select...).
 - [ ] Upgrade explorer page.
-- [ ] Enhance image manipulation in reader.
 - [ ] Enhance info screen chapters selection (some mangas have multiple version of the same chapter --> example: solo leveling).
 - [ ] Enhance new chapters verification to keep with the chapters specifications.
 - [ ] Advanced search system.
-- [ ] Fix reader issues (continue reading from last page not working)
+- [ ] Vertical card animations not working.
+- [x] Fix reader issues (continue reading from last page not working).
 - [x] Night mode schedule.
 - [x] Offline mode (kinda, need upgrades but technically implemented).
 - [x] Manual Night mode.
@@ -72,10 +72,11 @@ This is the changelog for the upcoming app release. These changes are not includ
 - Most followed mangas in explorer page.
 
 ### Changed
+- Complete rework of the manga reader system.
 - Home screen text when no currently reading manga.
 
 ### Fixed
-- 
+- Continue reading from last page not working issue.
 
 ### Misc
 - 

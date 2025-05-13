@@ -307,7 +307,7 @@ export const checkForNewChapters = async () => {
           body: `Chapter ${latestChapterNum} is out in ${language}!`,
           android: {
             channelId: 'new-chapters', // make sure this channel is created elsewhere
-            smallIcon: 'ic_launcher', // replace with your app icon
+            smallIcon: 'app', // replace with your app icon
           },
         });
 
