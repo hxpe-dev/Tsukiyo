@@ -71,7 +71,7 @@ const useThemedStyles = (theme: any) =>
   StyleSheet.create({
     modalBackground: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: theme.lowOpacity,
       justifyContent: 'center',
       alignItems: 'center',
     },

@@ -109,7 +109,7 @@ const styles = (theme: any) =>
     },
     modalBackground: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: theme.lowOpacity,
       justifyContent: 'center',
       alignItems: 'center',
     },

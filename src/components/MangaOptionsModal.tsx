@@ -117,7 +117,7 @@ const useThemedStyles = (theme: any) =>
     overlay: {
       flex: 1,
       justifyContent: 'flex-end',
-      backgroundColor: 'rgba(0,0,0,0.5)', // The overlay stays fixed
+      backgroundColor: theme.lowOpacity, // The overlay stays fixed
     },
     sheet: {
       backgroundColor: theme.background,

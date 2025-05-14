@@ -375,7 +375,7 @@ const ReaderScreen = () => {
           keyExtractor={(item, index) => `${item}-${index}`}
           key={'webtoon'}
           horizontal={false}
-          pagingEnabled={true}
+          pagingEnabled={false}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={true}
           onViewableItemsChanged={onViewableItemsChanged}

@@ -15,6 +15,7 @@ export const lightTheme = {
   positive: '#008000',
   error: '#ff0000',
   warning: '#d97706',
+  lowOpacity: 'rgba(0,0,0,0.5)',
 };
 
 export const darkTheme = {
@@ -34,4 +35,5 @@ export const darkTheme = {
   positive: '#008000',
   error: '#ff0000',
   warning: '#d97706',
+  lowOpacity: 'rgba(0,0,0,0.5)',
 };

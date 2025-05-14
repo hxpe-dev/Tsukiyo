@@ -71,6 +71,7 @@ This is the changelog for the upcoming app release. These changes are not includ
 ### Added
 - Most followed mangas in explorer page.
 - New chapter notifications toggle setting.
+- Tap zoom indicator to reset the zoom.
 
 ### Changed
 - Complete rework of the manga reader system.
@@ -78,6 +79,7 @@ This is the changelog for the upcoming app release. These changes are not includ
 
 ### Fixed
 - Continue reading from last page not working issue.
+- Webtoon reader paging enabled.
 
 ### Misc
 - Upgraded the default setting values system.

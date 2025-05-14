@@ -21,7 +21,7 @@ export const InfoPopup = ({
 }) => (
   <Modal transparent visible={visible} animationType="fade">
     <TouchableWithoutFeedback onPress={onClose}>
-      <View style={popupStyles.overlay}>
+      <View style={[popupStyles.overlay, {backgroundColor: theme.lowOpacity}]}>
         <TouchableWithoutFeedback onPress={() => {}}>
           <View
             style={[popupStyles.popup, {backgroundColor: theme.background}]}>
@@ -39,7 +39,6 @@ export const InfoPopup = ({
 const popupStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },

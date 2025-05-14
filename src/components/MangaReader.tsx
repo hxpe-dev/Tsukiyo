@@ -7,6 +7,7 @@ import {
   View,
   Text,
   StyleSheet,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {ReactNativeZoomableView} from '@openspacelabs/react-native-zoomable-view';
 import {useTheme} from '../context/ThemeContext';
@@ -89,6 +90,23 @@ const MangaReader: React.FC<Props> = ({
     }),
   ).current;
 
+  const zoomViewRefs = useRef<
+    React.RefObject<ReactNativeZoomableView | null>[]
+  >(imageUrls.map(() => React.createRef<ReactNativeZoomableView>()));
+
+  const resetZoom = () => {
+    const currentRef = zoomViewRefs.current[currentPageRef.current];
+    const zoomable = currentRef?.current;
+    if (zoomable) {
+      zoomable.moveTo(
+        zoomable.state.originalWidth / 2,
+        zoomable.state.originalHeight / 2,
+      );
+      zoomable.zoomTo(1);
+      setZoomLevel(1);
+    }
+  };
+
   return (
     <View {...panResponder.panHandlers} style={styles.container}>
       <Animated.View
@@ -104,7 +122,8 @@ const MangaReader: React.FC<Props> = ({
           <View key={index} style={{width: screenWidth, height: readerHeight}}>
             {Math.abs(index - currentPageRef.current) <= 1 ? (
               <ReactNativeZoomableView
-                maxZoom={3}
+                ref={zoomViewRefs.current[index]}
+                maxZoom={100}
                 minZoom={1}
                 zoomStep={0.5}
                 initialZoom={1}
@@ -144,9 +163,11 @@ const MangaReader: React.FC<Props> = ({
         ))}
       </Animated.View>
       {zoomLevel !== 1 && (
-        <View style={styles.zoomIndicator}>
-          <Text style={styles.zoomText}>{zoomLevel.toFixed(2)}x</Text>
-        </View>
+        <TouchableWithoutFeedback onPress={resetZoom}>
+          <View style={styles.zoomIndicator}>
+            <Text style={styles.zoomText}>{zoomLevel.toFixed(2)}x</Text>
+          </View>
+        </TouchableWithoutFeedback>
       )}
     </View>
   );
@@ -174,7 +195,7 @@ const useThemedStyles = (theme: any) =>
       position: 'absolute',
       bottom: 20,
       right: 20,
-      backgroundColor: 'rgba(0,0,0,0.6)',
+      backgroundColor: theme.lowOpacity,
       padding: 8,
       borderRadius: 5,
     },
