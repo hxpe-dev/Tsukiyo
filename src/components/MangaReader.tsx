@@ -38,7 +38,7 @@ const MangaReader: React.FC<Props> = ({
   const translateX = useRef(
     new Animated.Value(-screenWidth * initialPage),
   ).current;
-  const currentPage = useRef(initialPage);
+  const currentPageRef = useRef(initialPage);
   const [zoomLevel, setZoomLevel] = useState(1);
 
   const goToPage = (page: number) => {
@@ -52,7 +52,7 @@ const MangaReader: React.FC<Props> = ({
       return;
     }
 
-    currentPage.current = page;
+    currentPageRef.current = page;
     const newValue = -screenWidth * page;
 
     if (animations) {
@@ -77,12 +77,13 @@ const MangaReader: React.FC<Props> = ({
         if (zoomLevel !== 1) {
           return;
         } // Don't swipe if zoomed in
-        if (gesture.dx < -50 && currentPage.current < imageUrls.length - 1) {
-          goToPage(currentPage.current + 1);
-        } else if (gesture.dx > 50 && currentPage.current > 0) {
-          goToPage(currentPage.current - 1);
+        const page = currentPageRef.current;
+        if (gesture.dx < -50 && page < imageUrls.length - 1) {
+          goToPage(page + 1);
+        } else if (gesture.dx > 50 && page > 0) {
+          goToPage(page - 1);
         } else {
-          goToPage(currentPage.current);
+          goToPage(page);
         }
       },
     }),
@@ -101,40 +102,44 @@ const MangaReader: React.FC<Props> = ({
         ]}>
         {imageUrls.map((uri, index) => (
           <View key={index} style={{width: screenWidth, height: readerHeight}}>
-            <ReactNativeZoomableView
-              maxZoom={3}
-              minZoom={1}
-              zoomStep={0.5}
-              initialZoom={1}
-              bindToBorders={true}
-              doubleTapZoomToCenter
-              onZoomAfter={(event, gestureState, viewObj) =>
-                setZoomLevel(viewObj.zoomLevel)
-              }
-              style={styles.flex1}>
-              <View
-                style={styles.flex1}
-                onStartShouldSetResponder={() => zoomLevel === 1}
-                onResponderRelease={event => {
-                  const x = event.nativeEvent.locationX;
-                  if (x < screenWidth * 0.3) {
-                    goToPage(currentPage.current - 1);
-                  } else if (x > screenWidth * 0.7) {
-                    goToPage(currentPage.current + 1);
-                  }
-                }}>
-                <Image
-                  source={{uri}}
-                  style={[
-                    styles.image,
-                    {
-                      height: readerHeight,
-                    },
-                  ]}
-                  fadeDuration={0}
-                />
-              </View>
-            </ReactNativeZoomableView>
+            {Math.abs(index - currentPageRef.current) <= 1 ? (
+              <ReactNativeZoomableView
+                maxZoom={3}
+                minZoom={1}
+                zoomStep={0.5}
+                initialZoom={1}
+                bindToBorders={true}
+                doubleTapZoomToCenter
+                onZoomAfter={(event, gestureState, viewObj) =>
+                  setZoomLevel(viewObj.zoomLevel)
+                }
+                style={styles.flex1}>
+                <View
+                  style={styles.flex1}
+                  onStartShouldSetResponder={() => zoomLevel === 1}
+                  onResponderRelease={event => {
+                    const x = event.nativeEvent.locationX;
+                    if (x < screenWidth * 0.3) {
+                      goToPage(currentPageRef.current - 1);
+                    } else if (x > screenWidth * 0.7) {
+                      goToPage(currentPageRef.current + 1);
+                    }
+                  }}>
+                  <Image
+                    source={{uri}}
+                    style={[
+                      styles.image,
+                      {
+                        height: readerHeight,
+                      },
+                    ]}
+                    fadeDuration={0}
+                  />
+                </View>
+              </ReactNativeZoomableView>
+            ) : (
+              <View style={styles.flex1} />
+            )}
           </View>
         ))}
       </Animated.View>

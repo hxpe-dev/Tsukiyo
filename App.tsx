@@ -6,27 +6,29 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {setupNotificationChannel} from './src/notifications/setupNotificationChannel.ts';
 import BackgroundFetch from 'react-native-background-fetch';
 import {checkForNewChapters} from './src/api/mangadex';
-import {getNewChapterCheckFrequency} from './src/utils/settingLoader.ts';
+import {
+  getNewChapterNotifications,
+  getNewChapterCheckFrequency,
+} from './src/utils/settingLoader.ts';
 import VersionCheckModal from './src/components/VersionCheckModal.tsx';
 import {isConnected, updateNetworkStatus} from './src/utils/variables.ts';
 
 const App = () => {
+  const [newChapterNotificationsEnabled, setNewChapterNotificationsEnabled] =
+    useState(true);
   const [fetchInterval, setFetchInterval] = useState(180);
 
   useEffect(() => {
     updateNetworkStatus();
 
     async function loadSetting() {
+      setNewChapterNotificationsEnabled(await getNewChapterNotifications());
       setFetchInterval(await getNewChapterCheckFrequency());
     }
     loadSetting();
 
     // Setup notification channel
     setupNotificationChannel();
-    // We check for new chapters at the app start
-    if (isConnected) {
-      checkForNewChapters();
-    }
 
     // Initialize Background Fetch
     const initBackgroundFetch = async () => {
@@ -53,9 +55,12 @@ const App = () => {
       }
     };
 
-    // Run the background initialization
-    initBackgroundFetch();
-  }, [fetchInterval]);
+    // We check for new chapters at the app start and then start the background task
+    if (isConnected && newChapterNotificationsEnabled) {
+      checkForNewChapters();
+      initBackgroundFetch();
+    }
+  }, [fetchInterval, newChapterNotificationsEnabled]);
 
   return (
     <SafeAreaProvider>

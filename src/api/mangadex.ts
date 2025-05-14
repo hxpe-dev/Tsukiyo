@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import notifee from '@notifee/react-native';
 import {MangaProgress} from '../types/mangadex';
 import {getLanguageName} from '../utils/languages';
 import {isConnected} from '../utils/variables';
+import {send} from '../utils/sendNotification';
 
 const STORAGE_KEY = '@manga_progress';
 
@@ -302,14 +302,12 @@ export const checkForNewChapters = async () => {
       if (hasNewerChapter) {
         // Send Notifee notification
         const language = getLanguageName(entry.mangaLang, true);
-        await notifee.displayNotification({
-          title: `New Chapter: ${entry.mangaTitle}`,
-          body: `Chapter ${latestChapterNum} is out in ${language}!`,
-          android: {
-            channelId: 'new-chapters', // make sure this channel is created elsewhere
-            smallIcon: 'app', // replace with your app icon
-          },
-        });
+        send(
+          `New Chapter: ${entry.mangaTitle}`,
+          `Chapter ${latestChapterNum} is out in ${language}!`,
+          'new-chapters',
+          'notifications_icon',
+        );
 
         // Update stored progress
         updatedProgress[mangaId] = {

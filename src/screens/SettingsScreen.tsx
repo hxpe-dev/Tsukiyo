@@ -13,28 +13,57 @@ import Icon from 'react-native-vector-icons/Feather';
 import {InfoPopup} from '../components/InfoPopup';
 import {TimePicker} from '../components/TimePicker';
 import {setShowRestartWarning, showRestartWarning} from '../utils/variables';
-import notifee from '@notifee/react-native';
+import {send} from '../utils/sendNotification';
+import {
+  DEFAULT_HORIZONTAL_CARD_ANIMATIONS,
+  DEFAULT_MATURE_CONTENT,
+  DEFAULT_NEW_CHAPTER_CHECK_FREQUENCY,
+  DEFAULT_NEW_CHAPTER_NOTIFICATIONS,
+  DEFAULT_NIGHT_MODE,
+  DEFAULT_NIGHT_MODE_SCHEDULE,
+  DEFAULT_NIGHT_MODE_SCHEDULE_END,
+  DEFAULT_NIGHT_MODE_SCHEDULE_START,
+  DEFAULT_NOTIFY_NEW_VERSION,
+  DEFAULT_READER_ANIMATIONS,
+  DEFAULT_VERTICAL_CARD_ANIMATIONS,
+  DEFAULT_WEBTOON_SEGMENT_HEIGHT,
+} from '../utils/settingLoader';
 
 export default function SettingsScreen() {
   const {theme, toggleTheme, isDark} = useTheme();
   const styles = useThemedStyles(theme);
 
-  const [nightModeEnabled, setNightModeEnabled] = useState(false);
-  const [nightModeScheduleEnabled, setNightModeScheduleEnabled] =
-    useState(false);
-  const [nightModeStart, setNightModeStart] = useState('22:00');
-  const [nightModeEnd, setNightModeEnd] = useState('07:00');
+  const [nightModeEnabled, setNightModeEnabled] = useState(DEFAULT_NIGHT_MODE);
+  const [nightModeScheduleEnabled, setNightModeScheduleEnabled] = useState(
+    DEFAULT_NIGHT_MODE_SCHEDULE,
+  );
+  const [nightModeStart, setNightModeStart] = useState(
+    DEFAULT_NIGHT_MODE_SCHEDULE_START,
+  );
+  const [nightModeEnd, setNightModeEnd] = useState(
+    DEFAULT_NIGHT_MODE_SCHEDULE_END,
+  );
   const [horizontalCardAnimationsEnabled, setHorizontalCardAnimationsEnabled] =
-    useState(true);
+    useState(DEFAULT_HORIZONTAL_CARD_ANIMATIONS);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
-    useState(true);
-  const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
-  const [matureContentEnabled, setMatureContentEnabled] = useState(false);
-  const [notifyOnNewVersionEnabled, setNotifyOnNewVersionEnabled] =
-    useState(true);
-  const [webtoonSegmentHeight, setWebtoonSegmentHeight] = useState('1000');
-  const [newChapterCheckFrequency, setNewChapterCheckFrequency] =
-    useState('180');
+    useState(DEFAULT_VERTICAL_CARD_ANIMATIONS);
+  const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(
+    DEFAULT_READER_ANIMATIONS,
+  );
+  const [matureContentEnabled, setMatureContentEnabled] = useState(
+    DEFAULT_MATURE_CONTENT,
+  );
+  const [notifyOnNewVersionEnabled, setNotifyOnNewVersionEnabled] = useState(
+    DEFAULT_NOTIFY_NEW_VERSION,
+  );
+  const [webtoonSegmentHeight, setWebtoonSegmentHeight] = useState(
+    String(DEFAULT_WEBTOON_SEGMENT_HEIGHT),
+  );
+  const [newChapterNotificationsEnabled, setNewChapterNotificationsEnabled] =
+    useState(DEFAULT_NEW_CHAPTER_NOTIFICATIONS);
+  const [newChapterCheckFrequency, setNewChapterCheckFrequency] = useState(
+    String(DEFAULT_NEW_CHAPTER_CHECK_FREQUENCY),
+  );
   const [infoVisible, setInfoVisible] = useState(false);
   const [infoText, setInfoText] = useState('');
 
@@ -63,6 +92,9 @@ export default function SettingsScreen() {
       );
       const webtoonSegmentHeightSetting = await AsyncStorage.getItem(
         'webtoon_segment_height',
+      );
+      const newChapterNotificationsSetting = await AsyncStorage.getItem(
+        'new_chapter_notifications',
       );
       const newChapterCheckFrequencySetting = await AsyncStorage.getItem(
         'new_chapter_check_frequency',
@@ -101,6 +133,11 @@ export default function SettingsScreen() {
       }
       if (webtoonSegmentHeightSetting !== null) {
         setWebtoonSegmentHeight(webtoonSegmentHeightSetting);
+      }
+      if (newChapterNotificationsSetting !== null) {
+        setNewChapterNotificationsEnabled(
+          newChapterNotificationsSetting === 'true',
+        );
       }
       if (newChapterCheckFrequencySetting !== null) {
         setNewChapterCheckFrequency(newChapterCheckFrequencySetting);
@@ -165,14 +202,12 @@ export default function SettingsScreen() {
   const toggleNotifyNewVersion = async () => {
     const newValue = !notifyOnNewVersionEnabled;
     if (newValue === true) {
-      await notifee.displayNotification({
-        title: 'Hey there!',
-        body: 'Thank you very much for enabling the new app version notification!',
-        android: {
-          channelId: 'new-chapters',
-          smallIcon: 'app',
-        },
-      });
+      send(
+        'Hey there!',
+        'Thank you very much for enabling the new app version notification!',
+        'new-chapters',
+        'notifications_icon',
+      );
     }
     setNotifyOnNewVersionEnabled(newValue);
     await AsyncStorage.setItem('notify_new_version', String(newValue));
@@ -184,6 +219,20 @@ export default function SettingsScreen() {
       setWebtoonSegmentHeight(value);
       await AsyncStorage.setItem('webtoon_segment_height', value);
     }
+  };
+
+  const toggleNewChapterNotifications = async () => {
+    const newValue = !newChapterNotificationsEnabled;
+    if (newValue === true) {
+      send(
+        'Hey there!',
+        'New chapter notifications are now enabled!',
+        'new-chapters',
+        'notifications_icon',
+      );
+    }
+    setNewChapterNotificationsEnabled(newValue);
+    await AsyncStorage.setItem('new_chapter_notifications', String(newValue));
   };
 
   const updateNewChapterCheckFrequency = async (value: string) => {
@@ -332,6 +381,60 @@ export default function SettingsScreen() {
 
       <View style={styles.settingRow}>
         <View style={styles.settingsLabel}>
+          <Text style={styles.text}>New Chapter Notifications</Text>
+          <TouchableOpacity
+            onPress={() =>
+              showInfo(
+                "When enabled, Tsukiyo will send a notification when new chapters of the mangas you're currently reading are released.",
+              )
+            }>
+            <Icon
+              name="info"
+              size={16}
+              color={theme.text}
+              style={styles.infoIcon}
+            />
+          </TouchableOpacity>
+        </View>
+        <Switch
+          value={newChapterNotificationsEnabled}
+          onValueChange={toggleNewChapterNotifications}
+          thumbColor={
+            newChapterNotificationsEnabled ? theme.button : theme.error
+          }
+          trackColor={{false: theme.border, true: theme.border}}
+        />
+      </View>
+
+      {newChapterNotificationsEnabled && (
+        <View style={styles.settingRow}>
+          <View style={styles.settingsLabel}>
+            <Text style={styles.text}>New Chapter Check Frequency</Text>
+            <TouchableOpacity
+              onPress={() =>
+                showInfo(
+                  'Sets how frequently the app checks for new chapters of your currently reading mangas (in minutes).',
+                )
+              }>
+              <Icon
+                name="info"
+                size={16}
+                color={theme.text}
+                style={styles.infoIcon}
+              />
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={styles.input}
+            keyboardType="numeric"
+            value={newChapterCheckFrequency}
+            onChangeText={updateNewChapterCheckFrequency}
+          />
+        </View>
+      )}
+
+      <View style={styles.settingRow}>
+        <View style={styles.settingsLabel}>
           <Text style={styles.text}>Webtoon Segment Height</Text>
           <TouchableOpacity
             onPress={() =>
@@ -352,31 +455,6 @@ export default function SettingsScreen() {
           keyboardType="numeric"
           value={webtoonSegmentHeight}
           onChangeText={updateWebtoonSegmentHeight}
-        />
-      </View>
-
-      <View style={styles.settingRow}>
-        <View style={styles.settingsLabel}>
-          <Text style={styles.text}>New Chapter Check Frequency</Text>
-          <TouchableOpacity
-            onPress={() =>
-              showInfo(
-                'Sets how frequently the app checks for new chapters of your currently reading mangas (in minutes).',
-              )
-            }>
-            <Icon
-              name="info"
-              size={16}
-              color={theme.text}
-              style={styles.infoIcon}
-            />
-          </TouchableOpacity>
-        </View>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={newChapterCheckFrequency}
-          onChangeText={updateNewChapterCheckFrequency}
         />
       </View>
 

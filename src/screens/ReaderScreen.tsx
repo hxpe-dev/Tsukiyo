@@ -25,6 +25,9 @@ import {useTheme} from '../context/ThemeContext';
 import PageLoading from '../components/PageLoading';
 import CropImage from '../components/CropImage';
 import {
+  DEFAULT_NIGHT_MODE,
+  DEFAULT_READER_ANIMATIONS,
+  DEFAULT_WEBTOON_SEGMENT_HEIGHT,
   getNightMode,
   getNightModeBySchedule,
   getReaderAnimations,
@@ -74,9 +77,13 @@ const ReaderScreen = () => {
 
   const currentChapter = chapters.find(ch => ch.id === activeChapterId);
 
-  const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(true);
-  const [maxSegmentHeight, setMaxSegmentHeight] = useState(1000);
-  const [nightMode, setNightMode] = useState(false);
+  const [readerAnimationsEnabled, setReaderAnimationsEnabled] = useState(
+    DEFAULT_READER_ANIMATIONS,
+  );
+  const [maxSegmentHeight, setMaxSegmentHeight] = useState(
+    DEFAULT_WEBTOON_SEGMENT_HEIGHT,
+  );
+  const [nightMode, setNightMode] = useState(DEFAULT_NIGHT_MODE);
   useEffect(() => {
     if (isExternal) {
       return;

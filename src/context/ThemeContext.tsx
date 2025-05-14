@@ -7,7 +7,11 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {lightTheme, darkTheme} from '../utils/theme';
-import {getNightModeSchedule} from '../utils/settingLoader';
+import {
+  DEFAULT_NIGHT_MODE_SCHEDULE_END,
+  DEFAULT_NIGHT_MODE_SCHEDULE_START,
+  getNightModeSchedule,
+} from '../utils/settingLoader';
 
 interface ThemeContextType {
   theme: typeof lightTheme;
@@ -31,8 +35,12 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
   const [isDark, setIsDark] = useState(false);
-  const [scheduleStart, setScheduleStart] = useState('22:00');
-  const [scheduleEnd, setScheduleEnd] = useState('07:00');
+  const [scheduleStart, setScheduleStart] = useState(
+    DEFAULT_NIGHT_MODE_SCHEDULE_START,
+  );
+  const [scheduleEnd, setScheduleEnd] = useState(
+    DEFAULT_NIGHT_MODE_SCHEDULE_END,
+  );
 
   useEffect(() => {
     const loadTheme = async () => {

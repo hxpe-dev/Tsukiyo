@@ -70,6 +70,7 @@ Tsukiyo is licensed under the MIT License (MIT). More info can be found [here](L
 This is the changelog for the upcoming app release. These changes are not included in the current latest release but have already been committed to GitHub and will be part of the next release.
 ### Added
 - Most followed mangas in explorer page.
+- New chapter notifications toggle setting.
 
 ### Changed
 - Complete rework of the manga reader system.
@@ -79,4 +80,4 @@ This is the changelog for the upcoming app release. These changes are not includ
 - Continue reading from last page not working issue.
 
 ### Misc
-- 
+- Upgraded the default setting values system.

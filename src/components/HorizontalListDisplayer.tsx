@@ -3,7 +3,10 @@ import {View, Text, FlatList, StyleSheet} from 'react-native';
 import {DisplayableManga} from '../types/mangadex';
 import Card from './Card';
 import {useTheme} from '../context/ThemeContext';
-import {getHorizontalCardAnimations} from '../utils/settingLoader';
+import {
+  DEFAULT_HORIZONTAL_CARD_ANIMATIONS,
+  getHorizontalCardAnimations,
+} from '../utils/settingLoader';
 
 interface Props {
   title: string;
@@ -22,7 +25,9 @@ export default function HorizontalListDisplayer({
   const styles = useThemedStyles(theme);
 
   const [viewableItems, setViewableItems] = useState<any[]>([]); // Store visible items
-  const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [animationsEnabled, setAnimationsEnabled] = useState(
+    DEFAULT_HORIZONTAL_CARD_ANIMATIONS,
+  );
 
   useEffect(() => {
     async function loadSetting() {
