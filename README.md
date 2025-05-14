@@ -66,20 +66,16 @@ Feel free to submit pull requests, create issues, or share your suggestions. Wha
 ## LICENSE 📜
 Tsukiyo is licensed under the MIT License (MIT). More info can be found [here](LICENSE.md).
 
-## Upcoming version changelog (version estimation: 1.2.2)
+## Upcoming version changelog (version estimation: unknown)
 This is the changelog for the upcoming app release. These changes are not included in the current latest release but have already been committed to GitHub and will be part of the next release.
 ### Added
-- Most followed mangas in explorer page.
-- New chapter notifications toggle setting.
-- Tap zoom indicator to reset the zoom.
+- 
 
 ### Changed
-- Complete rework of the manga reader system.
-- Home screen text when no currently reading manga.
+- 
 
 ### Fixed
-- Continue reading from last page not working issue.
-- Webtoon reader paging enabled.
+- 
 
 ### Misc
-- Upgraded the default setting values system.
+- 
