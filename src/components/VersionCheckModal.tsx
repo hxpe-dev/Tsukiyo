@@ -53,7 +53,7 @@ const VersionCheckModal: React.FC = () => {
                   style={styles.button}
                   onPress={() =>
                     Linking.openURL(
-                      'https://github.com/hxpe-dev/Tsukiyo/releases',
+                      'https://github.com/hxpe-dev/Tsukiyo/releases/latest',
                     )
                   }>
                   <Text style={styles.buttonDownloadText}>Download</Text>

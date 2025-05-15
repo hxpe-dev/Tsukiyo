@@ -72,7 +72,9 @@ This is the changelog for the upcoming app release. These changes are not includ
 - 
 
 ### Changed
-- 
+- Info screen redesign.
+- Webtoon reader changes.
+- New app version modal now takes to the latest release.
 
 ### Fixed
 - 

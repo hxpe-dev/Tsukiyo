@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   View,
-  ScrollView,
   ActivityIndicator,
 } from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
@@ -29,9 +28,17 @@ import RateLimitWarning from '../components/RateLimitWarning';
 import {useTheme} from '../context/ThemeContext';
 import {getTitleFromItem} from '../utils/languages';
 import PageLoading from '../components/PageLoading';
+import LinearGradient from 'react-native-linear-gradient';
+import { getStatusText } from '../utils/statusAdaptor';
+import Dropdown from '../components/Dropdown';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InfoScreenRouteProp = RouteProp<RootStackParamList, 'Info'>;
+
+const FlatListCellRenderer = ({ style, ...props }: any) => (
+  // eslint-disable-next-line react-native/no-inline-styles
+  <View style={[style, { elevation: -1 }]} {...props} />
+);
 
 const InfoScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -60,6 +67,7 @@ const InfoScreen = () => {
     new Set(),
   );
   const [rateLimited, setRateLimited] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const isManga = (obj: any): obj is Manga => 'attributes' in obj;
 
@@ -265,46 +273,48 @@ const InfoScreen = () => {
     const isExternal = !!item.attributes.externalUrl;
 
     return (
-      <TouchableOpacity
-        style={styles.chapterItem}
-        onPress={() =>
-          handleStartReading(item.id, item.attributes.externalUrl)
-        }>
-        <View style={styles.chapterRow}>
-          <Text
-            style={styles.chapterTitle}
-            numberOfLines={1}
-            ellipsizeMode="tail">
-            Chapter {item.attributes.chapter || '?'}{' '}
-            {item.attributes.title ? ': ' + item.attributes.title : ''}
-            {isExternal ? ' (External)' : ''}
-          </Text>
-          {!isExternal &&
-            (isDownloaded ? (
-              <Icon
-                name="check"
-                size={24}
-                color={theme.positive}
-                style={styles.utilIcon}
-              />
-            ) : isDownloading ? (
-              <ActivityIndicator
-                size="small"
-                color={theme.button}
-                style={styles.utilIcon}
-              />
-            ) : (
-              <TouchableOpacity onPress={() => handleDownloadChapter(item.id)}>
+      <View style={styles.chaptersContainer}>
+        <TouchableOpacity
+          style={styles.chapterItem}
+          onPress={() =>
+            handleStartReading(item.id, item.attributes.externalUrl)
+          }>
+          <View style={styles.chapterRow}>
+            <Text
+              style={styles.chapterTitle}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              Chapter {item.attributes.chapter || '?'}{' '}
+              {item.attributes.title ? ': ' + item.attributes.title : ''}
+              {isExternal ? ' (External)' : ''}
+            </Text>
+            {!isExternal &&
+              (isDownloaded ? (
                 <Icon
-                  name="download"
+                  name="check"
                   size={24}
+                  color={theme.positive}
+                  style={styles.utilIcon}
+                />
+              ) : isDownloading ? (
+                <ActivityIndicator
+                  size="small"
                   color={theme.button}
                   style={styles.utilIcon}
                 />
-              </TouchableOpacity>
-            ))}
-        </View>
-      </TouchableOpacity>
+              ) : (
+                <TouchableOpacity onPress={() => handleDownloadChapter(item.id)}>
+                  <Icon
+                    name="download"
+                    size={24}
+                    color={theme.button}
+                    style={styles.utilIcon}
+                  />
+                </TouchableOpacity>
+              ))}
+          </View>
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -324,104 +334,80 @@ const InfoScreen = () => {
 
   const renderHeader = () => (
     <View>
-      {imageUrl && <Image source={{uri: imageUrl}} style={styles.coverImage} />}
-      <Text style={styles.title}>{getTitleFromItem(manga)}</Text>
-      <Text style={styles.label}>
-        Status: {manga.attributes.status || 'Unknown'}
-      </Text>
-      <Text style={styles.label}>Year: {manga.attributes.year || 'N/A'}</Text>
-      <Text style={styles.label}>
-        Content Rating: {manga.attributes.contentRating || 'N/A'}
-      </Text>
-      <Text style={styles.description}>
-        {manga.attributes.description.en || 'No description available.'}
-      </Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.languageScroller}>
-        {availableLanguages.map((lang, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.languageButton,
-              lang === selectedLanguage && styles.selectedLanguageButton,
-            ]}
-            onPress={() => setSelectedLanguage(lang)}>
-            <Text
-              style={[
-                styles.languageButtonText,
-                lang === selectedLanguage && styles.selectedLanguageButtonText,
-              ]}>
-              {lang.toUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.urlScroller}>
-        {mangadexChapters.length > 0 && (
-          <TouchableOpacity
-            style={[
-              styles.urlButton,
-              selectedUrl === 'mangadex' && styles.selectedUrlButton,
-            ]}
-            onPress={() => setSelectedUrl('mangadex')}>
-            <Text
-              style={[
-                styles.urlButtonText,
-                selectedUrl === 'mangadex' && styles.selectedUrlButtonText,
-              ]}>
-              Mangadex
-            </Text>
-          </TouchableOpacity>
-        )}
-        {externalChapters.length > 0 && (
-          <TouchableOpacity
-            style={[
-              styles.urlButton,
-              selectedUrl === 'external' && styles.selectedUrlButton,
-            ]}
-            onPress={() => setSelectedUrl('external')}>
-            <Text
-              style={[
-                styles.urlButtonText,
-                selectedUrl === 'external' && styles.selectedUrlButtonText,
-              ]}>
-              External
-            </Text>
-          </TouchableOpacity>
-        )}
-      </ScrollView>
-      <TouchableOpacity
-        style={styles.startButton}
-        onPress={() => {
-          if (readingProgress?.chapterId) {
-            navigation.navigate('Reader', {
-              mangaId: manga.id,
-              mangaTitle: readingProgress.mangaTitle,
-              mangaLang: selectedLanguage,
-              mangaCover: readingProgress.mangaCover,
-              chapterId: readingProgress.chapterId,
-              chapters: readingProgress.chapters,
-              page: readingProgress.page,
-              externalUrl: readingProgress.externalUrl || null,
-            });
-          } else {
-            handleStartReading(
-              chapters[0]?.id,
-              chapters[0]?.attributes.externalUrl || null,
-            );
-          }
-        }}>
-        <Text style={styles.startButtonText}>
-          {readingProgress ? 'Continue Reading' : 'Start Reading'}
+      {imageUrl && (
+        <View style={styles.coverContainer}>
+          <Image source={{uri: imageUrl}} style={styles.coverImage} />
+          <LinearGradient
+            colors={['transparent', theme.background]}
+            locations={[0, 0.7]}
+            style={styles.gradientOverlay}>
+            <Text style={styles.title}>{getTitleFromItem(manga)}</Text>
+            <Text style={styles.label}>{getStatusText(manga.attributes.status)}  •  {manga.attributes.year || 'N/A'}  •  {manga.attributes.contentRating || 'N/A'}</Text>
+          </LinearGradient>
+        </View>
+      )}
+      <View style={styles.descriptionContainer}>
+        <Text
+          style={styles.description}
+          numberOfLines={descriptionExpanded ? undefined : 3}
+          ellipsizeMode="tail">
+          {manga.attributes.description.en || 'No description available.'}
         </Text>
-      </TouchableOpacity>
+        {manga.attributes.description.en?.length > 200 && (
+          <TouchableOpacity onPress={() => setDescriptionExpanded(prev => !prev)}>
+            <Text style={styles.toggleDescription}>
+              {descriptionExpanded ? 'Show Less' : 'Show More'}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      <View style={styles.dropdownsRow}>
+        <View style={styles.dropdownContainerLeft}>
+          <Dropdown
+            options={availableLanguages}
+            selected={selectedLanguage}
+            onSelect={setSelectedLanguage}
+            placeholder="Language"
+          />
+        </View>
+        <View style={styles.dropdownContainerRight}>
+          <Dropdown
+            options={['mangadex', 'external']}
+            selected={selectedUrl ?? ''}
+            onSelect={setSelectedUrl}
+            placeholder="Source"
+          />
+        </View>
+      </View>
+      <View style={styles.startButtonContainer}>
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={() => {
+            if (readingProgress?.chapterId) {
+              navigation.navigate('Reader', {
+                mangaId: manga.id,
+                mangaTitle: readingProgress.mangaTitle,
+                mangaLang: selectedLanguage,
+                mangaCover: readingProgress.mangaCover,
+                chapterId: readingProgress.chapterId,
+                chapters: readingProgress.chapters,
+                page: readingProgress.page,
+                externalUrl: readingProgress.externalUrl || null,
+              });
+            } else {
+              handleStartReading(
+                chapters[0]?.id,
+                chapters[0]?.attributes.externalUrl || null,
+              );
+            }
+          }}>
+          <Text style={styles.startButtonText}>
+            {readingProgress ? 'Continue Reading' : 'Start Reading'}
+          </Text>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.sectionHeader}>
-        Chapters ({getChapterData().length})
+        {getChapterData().length} Chapters
       </Text>
       {rateLimited && <RateLimitWarning />}
     </View>
@@ -429,14 +415,17 @@ const InfoScreen = () => {
 
   return (
     <FlatList
+      style={styles.container}
       data={getChapterData()}
-      keyExtractor={chapter => `${chapter.id}-${selectedLanguage}`}
+      // eslint-disable-next-line @typescript-eslint/no-shadow
+      keyExtractor={item => item.id}
       renderItem={renderChapterItem}
       ListHeaderComponent={renderHeader}
-      contentContainerStyle={styles.container}
+      CellRendererComponent={FlatListCellRenderer}
+      removeClippedSubviews={false}
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.5}
-      ListFooterComponent={loading ? <Text>Loading...</Text> : null}
+      keyboardShouldPersistTaps="handled"
     />
   );
 };
@@ -444,30 +433,65 @@ const InfoScreen = () => {
 const useThemedStyles = (theme: any) =>
   StyleSheet.create({
     container: {
-      padding: 16,
       backgroundColor: theme.background,
+    },
+    coverContainer: {
+      position: 'relative',
+      width: '100%',
+      height: 400,
+      marginBottom: 16,
     },
     coverImage: {
       width: '100%',
-      height: 350,
-      borderRadius: 10,
-      marginBottom: 16,
+      height: '100%',
+      position: 'absolute',
+    },
+    gradientOverlay: {
+      position: 'absolute',
+      bottom: 0,
+      width: '100%',
+      paddingTop: 80,
+      paddingBottom: 10,
+      paddingHorizontal: 16,
     },
     title: {
-      fontSize: 22,
+      fontSize: 24,
       fontWeight: 'bold',
-      marginBottom: 12,
       color: theme.text,
     },
     label: {
-      fontSize: 14,
-      marginBottom: 6,
+      fontSize: 16,
       color: theme.text,
     },
+    descriptionContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 12,
+    },
+    toggleDescription: {
+      color: theme.button,
+      marginTop: 8,
+      fontWeight: 'bold',
+    },
     description: {
+      textAlign: 'justify',
       fontSize: 16,
-      marginTop: 12,
       color: theme.text,
+    },
+    dropdownsRow: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      marginVertical: 12,
+    },
+    dropdownContainerLeft : {
+      flex: 1,
+      marginRight: 8,
+    },
+    dropdownContainerRight : {
+      flex: 1,
+      marginLeft: 8,
+    },
+    startButtonContainer: {
+      paddingHorizontal: 16,
     },
     startButton: {
       paddingVertical: 12,
@@ -481,15 +505,18 @@ const useThemedStyles = (theme: any) =>
       fontWeight: 'bold',
       color: theme.buttonText,
     },
-    chapterRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+    chaptersContainer: {
+      paddingHorizontal: 16,
     },
     chapterItem: {
       paddingVertical: 12,
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
+    },
+    chapterRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     chapterTitle: {
       fontSize: 16,
@@ -500,53 +527,12 @@ const useThemedStyles = (theme: any) =>
       marginLeft: 8,
     },
     sectionHeader: {
+      paddingHorizontal: 16,
       fontSize: 18,
       fontWeight: 'bold',
       marginTop: 20,
       marginBottom: 10,
       color: theme.text,
-    },
-    languageScroller: {
-      marginVertical: 12,
-    },
-    urlScroller: {
-      marginVertical: 12,
-    },
-    languageButton: {
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      marginRight: 10,
-      backgroundColor: theme.unselectedButton,
-      borderRadius: 20,
-      alignItems: 'center',
-    },
-    selectedLanguageButton: {
-      backgroundColor: theme.button,
-    },
-    urlButton: {
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      marginRight: 10,
-      backgroundColor: theme.unselectedButton,
-      borderRadius: 20,
-      alignItems: 'center',
-    },
-    selectedUrlButton: {
-      backgroundColor: theme.button,
-    },
-    languageButtonText: {
-      fontSize: 16,
-      color: theme.text,
-    },
-    urlButtonText: {
-      fontSize: 16,
-      color: theme.text,
-    },
-    selectedLanguageButtonText: {
-      color: theme.buttonText,
-    },
-    selectedUrlButtonText: {
-      color: theme.buttonText,
     },
   });
 

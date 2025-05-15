@@ -5,9 +5,6 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  FlatList,
-  TouchableOpacity,
-  Platform,
 } from 'react-native';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import {getChapterImages, isApiRateLimited} from '../api/mangadex';
@@ -23,7 +20,6 @@ import RateLimitWarning from '../components/RateLimitWarning';
 import ProgressBar from '../components/ProgressBar';
 import {useTheme} from '../context/ThemeContext';
 import PageLoading from '../components/PageLoading';
-import CropImage from '../components/CropImage';
 import {
   DEFAULT_NIGHT_MODE,
   DEFAULT_READER_ANIMATIONS,
@@ -37,6 +33,7 @@ import Dimmer from '../components/Dimmer';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import MangaReader from '../components/MangaReader';
+import WebtoonReader from '../components/WebtoonReader';
 
 type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
@@ -69,7 +66,6 @@ const ReaderScreen = () => {
   const [currentPage, setCurrentPage] = useState<number>(page || 0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [showNextChapterButton, setShowNextChapterButton] = useState(false);
   const shouldSetInitialPage = useRef(true);
   const enterFromPreviousChapter = useRef(false);
   const isWebtoon = useRef(false);
@@ -99,22 +95,38 @@ const ReaderScreen = () => {
   }, [isExternal]);
 
   const detectWebtoon = async (urls: string[]) => {
-    try {
-      const firstImage = urls[0];
-      const imageInfo = await new Promise<{width: number; height: number}>(
-        (resolve, reject) => {
+    const sampleCount = Math.min(5, urls.length);
+    const aspectRatios: number[] = [];
+
+    for (let i = 0; i < sampleCount; i++) {
+      try {
+        const imageInfo = await new Promise<{ width: number; height: number }>((resolve, reject) => {
           Image.getSize(
-            firstImage,
-            (width, height) => resolve({width, height}),
-            reject,
+            urls[i],
+            (width, height) => resolve({ width, height }),
+            reject
           );
-        },
-      );
-      isWebtoon.current = imageInfo.height / imageInfo.width > 2.2; // heuristic threshold
-    } catch (err) {
-      console.error('Failed to detect image size for webtoon detection', err);
-      isWebtoon.current = false; // fallback
+        });
+
+        const ratio = imageInfo.height / imageInfo.width;
+        aspectRatios.push(ratio);
+      } catch (err) {
+        console.warn(`Failed to get image size for image ${i}`, err);
+      }
     }
+
+    // Fallback if all image loading fails
+    if (aspectRatios.length === 0) {
+      isWebtoon.current = false;
+      return;
+    }
+
+    // Use average ratio for better judgment
+    const averageRatio =
+      aspectRatios.reduce((acc, val) => acc + val, 0) / aspectRatios.length;
+
+    // Consider webtoon if average ratio is high enough
+    isWebtoon.current = averageRatio > 2.2;
   };
 
   useEffect(() => {
@@ -161,7 +173,6 @@ const ReaderScreen = () => {
       }
       setLoading(true);
       setError(null);
-      setShowNextChapterButton(false);
       try {
         let urls: string[] = [];
 
@@ -276,32 +287,6 @@ const ReaderScreen = () => {
     }
   };
 
-  const onViewableItemsChanged = useRef(({viewableItems}: any) => {
-    if (viewableItems.length > 0) {
-      const index = viewableItems[0].index;
-      if (index !== null && index !== undefined) {
-        setCurrentPage(index);
-      }
-    }
-  }).current;
-
-  const renderItem = ({item, index}: {item: string; index: number}) => {
-    return (
-      <View>
-        <CropImage uri={item} maxSegmentHeight={maxSegmentHeight} />
-        {index === imageUrls.length - 1 && showNextChapterButton && (
-          <View style={styles.nextChapterButtonWrapper}>
-            <TouchableOpacity
-              onPress={goToNextChapter}
-              style={styles.nextChapterButton}>
-              <Text style={styles.nextChapterButtonText}>Next Chapter</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-    );
-  };
-
   ////////////////////////////////// IF EXTERNAL //////////////////////////////////
   if (externalUrl) {
     return (
@@ -369,26 +354,11 @@ const ReaderScreen = () => {
       </View>
 
       {isWebtoon.current ? (
-        <FlatList
-          data={imageUrls}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => `${item}-${index}`}
-          key={'webtoon'}
-          horizontal={false}
-          pagingEnabled={false}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={true}
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={{viewAreaCoveragePercentThreshold: 50}}
-          onEndReached={() => setShowNextChapterButton(true)}
-          onEndReachedThreshold={0.9}
-          // PERFORMANCE SETTINGS START
-          removeClippedSubviews={Platform.OS === 'android'}
-          scrollEventThrottle={16}
-          initialNumToRender={5}
-          maxToRenderPerBatch={5}
-          updateCellsBatchingPeriod={5}
-          // PERFORMANCE SETTINGS END
+        <WebtoonReader
+          imageUrls={imageUrls}
+          maxSegmentHeight={maxSegmentHeight}
+          onPageChange={setCurrentPage}
+          onNextChapter={goToNextChapter}
         />
       ) : (
         <MangaReader
