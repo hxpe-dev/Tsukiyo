@@ -29,15 +29,15 @@ import {useTheme} from '../context/ThemeContext';
 import {getTitleFromItem} from '../utils/languages';
 import PageLoading from '../components/PageLoading';
 import LinearGradient from 'react-native-linear-gradient';
-import { getStatusText } from '../utils/statusAdaptor';
+import {getStatusText} from '../utils/statusAdaptor';
 import Dropdown from '../components/Dropdown';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InfoScreenRouteProp = RouteProp<RootStackParamList, 'Info'>;
 
-const FlatListCellRenderer = ({ style, ...props }: any) => (
+const FlatListCellRenderer = ({style, ...props}: any) => (
   // eslint-disable-next-line react-native/no-inline-styles
-  <View style={[style, { elevation: -1 }]} {...props} />
+  <View style={[style, {elevation: -1}]} {...props} />
 );
 
 const InfoScreen = () => {
@@ -303,7 +303,8 @@ const InfoScreen = () => {
                   style={styles.utilIcon}
                 />
               ) : (
-                <TouchableOpacity onPress={() => handleDownloadChapter(item.id)}>
+                <TouchableOpacity
+                  onPress={() => handleDownloadChapter(item.id)}>
                   <Icon
                     name="download"
                     size={24}
@@ -342,7 +343,11 @@ const InfoScreen = () => {
             locations={[0, 0.7]}
             style={styles.gradientOverlay}>
             <Text style={styles.title}>{getTitleFromItem(manga)}</Text>
-            <Text style={styles.label}>{getStatusText(manga.attributes.status)}  •  {manga.attributes.year || 'N/A'}  •  {manga.attributes.contentRating || 'N/A'}</Text>
+            <Text style={styles.label}>
+              {getStatusText(manga.attributes.status)} •{' '}
+              {manga.attributes.year || 'N/A'} •{' '}
+              {manga.attributes.contentRating || 'N/A'}
+            </Text>
           </LinearGradient>
         </View>
       )}
@@ -354,7 +359,8 @@ const InfoScreen = () => {
           {manga.attributes.description.en || 'No description available.'}
         </Text>
         {manga.attributes.description.en?.length > 200 && (
-          <TouchableOpacity onPress={() => setDescriptionExpanded(prev => !prev)}>
+          <TouchableOpacity
+            onPress={() => setDescriptionExpanded(prev => !prev)}>
             <Text style={styles.toggleDescription}>
               {descriptionExpanded ? 'Show Less' : 'Show More'}
             </Text>
@@ -482,11 +488,11 @@ const useThemedStyles = (theme: any) =>
       paddingHorizontal: 16,
       marginVertical: 12,
     },
-    dropdownContainerLeft : {
+    dropdownContainerLeft: {
       flex: 1,
       marginRight: 8,
     },
-    dropdownContainerRight : {
+    dropdownContainerRight: {
       flex: 1,
       marginLeft: 8,
     },

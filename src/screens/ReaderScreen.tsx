@@ -1,11 +1,5 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  Dimensions,
-} from 'react-native';
+import {View, Text, StyleSheet, Image, Dimensions} from 'react-native';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import {getChapterImages, isApiRateLimited} from '../api/mangadex';
 import {RootStackParamList} from '../navigation/AppNavigator';
@@ -100,13 +94,15 @@ const ReaderScreen = () => {
 
     for (let i = 0; i < sampleCount; i++) {
       try {
-        const imageInfo = await new Promise<{ width: number; height: number }>((resolve, reject) => {
-          Image.getSize(
-            urls[i],
-            (width, height) => resolve({ width, height }),
-            reject
-          );
-        });
+        const imageInfo = await new Promise<{width: number; height: number}>(
+          (resolve, reject) => {
+            Image.getSize(
+              urls[i],
+              (width, height) => resolve({width, height}),
+              reject,
+            );
+          },
+        );
 
         const ratio = imageInfo.height / imageInfo.width;
         aspectRatios.push(ratio);

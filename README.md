@@ -1,4 +1,7 @@
 <p align="center">
+  <h2>Because of MangaDex's DMCA issues, the project will undergo a major new update enabling custom extensions.<h2/>
+</p>
+<p align="center">
     <img src="./assets/banner.png" width="100%">
 </p>
 <p align="center">
