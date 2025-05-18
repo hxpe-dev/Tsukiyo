@@ -49,6 +49,7 @@ export const saveReadingProgress = async (
   chapterNum: string,
   chapters: Chapter[],
   page: number,
+  sourceId: string,
   externalUrl?: string | null,
 ) => {
   try {
@@ -63,6 +64,7 @@ export const saveReadingProgress = async (
       chapterNum,
       chapters,
       page,
+      sourceId,
       externalUrl,
       lastRead: new Date().toISOString(),
     };
@@ -105,6 +107,7 @@ export const getAllReadingProgress = async (): Promise<MangaProgressItem[]> => {
         chapterNum: entry.chapterNum,
         chapters: entry.chapters,
         page: entry.page,
+        sourceId: entry.sourceId,
         externalUrl: entry.externalUrl,
         lastRead: entry.lastRead || null,
       }),
@@ -148,10 +151,11 @@ export const saveChapterImagesLocally = async (
   mangaTitle: string,
   chapterId: string,
   imageUrls: string[],
+  sourceId: string,
 ): Promise<string[]> => {
   const localPaths: string[] = [];
 
-  const dirPath = `${RNFS.DocumentDirectoryPath}/manga/${mangaId}/${chapterId}`;
+  const dirPath = `${RNFS.DocumentDirectoryPath}/manga/${sourceId}/${mangaId}/${chapterId}`;
   await RNFS.mkdir(dirPath); // Make sure the folder exists
 
   for (let i = 0; i < imageUrls.length; i++) {

@@ -9,6 +9,8 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {useTheme} from '../context/ThemeContext';
 import PageLoading from '../components/PageLoading';
+import { loadExtension } from '../utils/extensions';
+import { UsableExtension } from '../types/extensions';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -53,6 +55,7 @@ export default function HomeScreen() {
   const handleNavigateToReader = (item: DisplayableManga) => {
     if ('chapterId' in item) {
       navigation.navigate('Reader', {
+        sourceId: item.sourceId,
         mangaId: item.id,
         mangaTitle: item.title,
         mangaLang: item.lang,
@@ -65,8 +68,8 @@ export default function HomeScreen() {
     }
   };
 
-  const handleNavigateToInfo = (item: Manga | MangaProgressItem) => {
-    navigation.navigate('Info', {item});
+  const handleNavigateToInfo = async (item: Manga | MangaProgressItem) => {
+    navigation.navigate('Info', {source: await loadExtension(item.sourceId) as UsableExtension, item: item});
   };
 
   const handleCardLongPress = (item: DisplayableManga) => {

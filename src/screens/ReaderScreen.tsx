@@ -41,6 +41,7 @@ const ReaderScreen = () => {
     screenHeight - insets.top - insets.bottom - headerHeight - progressHeight;
   const route = useRoute<ReaderScreenRouteProp>();
   const {
+    sourceId,
     mangaId,
     mangaTitle,
     mangaLang,
@@ -153,6 +154,7 @@ const ReaderScreen = () => {
           mangaTitle,
           nextChapter.id,
           nextUrls,
+          sourceId,
         );
       } catch (err) {
         if (err instanceof Error && err.message === 'RATE_LIMITED') {
@@ -182,6 +184,7 @@ const ReaderScreen = () => {
             mangaTitle,
             activeChapterId,
             fetched,
+            sourceId,
           );
         }
 
@@ -211,7 +214,7 @@ const ReaderScreen = () => {
     };
 
     loadImages();
-  }, [activeChapterId, chapters, isExternal, mangaId, mangaTitle, page]);
+  }, [activeChapterId, chapters, isExternal, mangaId, mangaTitle, page, sourceId]);
 
   useEffect(() => {
     if (isExternal) {
@@ -233,21 +236,11 @@ const ReaderScreen = () => {
         currentChapter.attributes.chapter as string,
         chapters,
         currentPage,
+        sourceId,
         externalUrl,
       );
     }
-  }, [
-    activeChapterId,
-    chapters,
-    currentChapter,
-    currentPage,
-    externalUrl,
-    isExternal,
-    mangaCover,
-    mangaId,
-    mangaLang,
-    mangaTitle,
-  ]);
+  }, [activeChapterId, chapters, currentChapter, currentPage, externalUrl, isExternal, mangaCover, mangaId, mangaLang, mangaTitle, sourceId]);
 
   const goToNextChapter = () => {
     const currentIndex = chapters.findIndex(ch => ch.id === activeChapterId);
@@ -299,6 +292,7 @@ const ReaderScreen = () => {
             currentChapter?.attributes.chapter as string,
             chapters,
             currentPage,
+            sourceId,
             externalUrl,
           );
         }}

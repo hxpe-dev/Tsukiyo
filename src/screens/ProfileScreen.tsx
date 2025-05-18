@@ -190,6 +190,10 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
+      <TouchableOpacity onPress={() => navigation.navigate('Sources')}>
+        <Text>Sources</Text>
+      </TouchableOpacity>
+
       {/* Manga Downloads Section */}
       <Text style={styles.mangaDownloadsText}>Manga Downloads</Text>
       <FlatList

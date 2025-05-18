@@ -12,6 +12,7 @@ export type Manga = {
     contentRating?: 'safe' | 'suggestive' | 'erotica' | 'pornographic';
     tags?: any[];
   };
+  sourceId: string;
   relationships?: Relationship[];
 };
 
@@ -51,6 +52,7 @@ export interface MangaProgressEntry {
   chapterNum: string;
   chapters: Chapter[];
   page: number;
+  sourceId: string;
   externalUrl?: string | null;
   lastRead?: string;
 }
@@ -74,6 +76,7 @@ export interface MangaProgressItem {
   chapterNum: string;
   chapters: Chapter[];
   page: number;
+  sourceId: string;
   externalUrl?: string | null;
   lastRead?: string;
 }

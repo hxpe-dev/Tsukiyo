@@ -16,12 +16,6 @@ import {useNavigation} from '@react-navigation/native';
 import HorizontalListDisplayer from '../components/HorizontalListDisplayer';
 import Card from '../components/Card';
 import {DisplayableManga, Manga} from '../types/mangadex';
-import {
-  getLatestManga,
-  searchManga,
-  isApiRateLimited,
-  getMostFollowedManga,
-} from '../api/mangadex';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import RateLimitWarning from '../components/RateLimitWarning';
@@ -34,6 +28,8 @@ import {
   getMatureContent,
   getVerticalCardAnimations,
 } from '../utils/settingLoader';
+import {Extension, UsableExtension} from '../types/extensions';
+import {listInstalledExtensions, loadExtension} from '../utils/extensions';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -47,9 +43,10 @@ export default function ExplorerScreen() {
   const {theme} = useTheme();
   const styles = useThemedStyles(theme);
 
-  const [latestManga, setLatestManga] = useState<Manga[]>([]);
-  const [mostFollowedManga, setMostFollowedManga] = useState<Manga[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [explorerSections, setExplorerSections] = useState<
+    Record<string, Manga[]>
+  >({});
+  const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [verticalCardAnimationsEnabled, setVerticalCardAnimationsEnabled] =
     useState(DEFAULT_VERTICAL_CARD_ANIMATIONS);
@@ -58,15 +55,23 @@ export default function ExplorerScreen() {
   );
   const [hasSearched, setHasSearched] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
+  const [sources, setSources] = useState<Extension[]>([]);
+  const [selectedSource, setSelectedSource] = useState<UsableExtension | null>(
+    null,
+  );
 
   useEffect(() => {
     async function loadSetting() {
       setVerticalCardAnimationsEnabled(await getVerticalCardAnimations());
       const matureContent = await getMatureContent();
       setMatureContentEnabled(matureContent);
-      loadMangas(matureContent);
     }
+    const loadInstalledExtensions = async () => {
+      const list = await listInstalledExtensions();
+      setSources(list);
+    };
     loadSetting();
+    loadInstalledExtensions();
   }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,24 +80,31 @@ export default function ExplorerScreen() {
   const [viewableItems, setViewableItems] = useState<ViewToken[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
-  const loadMangas = async (matureContent: boolean = true) => {
-    if (isApiRateLimited()) {
+  const loadMangas = async (source: UsableExtension | null) => {
+    if (!source) {
+      return;
+    }
+    console.log(matureContentEnabled);
+
+    setLoading(true);
+    setRateLimited(false);
+
+    if (source.isApiRateLimited()) {
       setRateLimited(true);
       return;
     }
+
     try {
-      const latestMangaData = await getLatestManga(20, matureContent);
-      setLatestManga(latestMangaData);
-      const mostFollowedMangaData = await getMostFollowedManga(
-        20,
-        matureContent,
-      );
-      setMostFollowedManga(mostFollowedMangaData);
+      const data = await source.explorer({
+        limit: 15,
+        matureContent: matureContentEnabled,
+      });
+      setExplorerSections(data);
     } catch (error) {
       if (error instanceof Error && error.message === 'RATE_LIMITED') {
         setRateLimited(true);
       } else {
-        console.error('Failed to fetch latest manga', error);
+        console.error('Failed to load explorer data:', error);
       }
     } finally {
       setLoading(false);
@@ -105,26 +117,28 @@ export default function ExplorerScreen() {
     setSearchResults([]);
     setSearchQuery('');
     setHasSearched(false);
-    loadMangas(matureContentEnabled);
+    loadMangas(selectedSource);
   };
 
   const handleSearch = async () => {
+    if (!selectedSource) {
+      return;
+    }
     if (!searchQuery.trim()) {
       return;
     }
-    if (isApiRateLimited()) {
+    if (selectedSource.isApiRateLimited()) {
       setRateLimited(true);
       return;
     }
     setHasSearched(true);
     setIsSearching(true);
     try {
-      const results = await searchManga(
-        searchQuery.trim(),
-        30,
-        matureContentEnabled,
-        {relevance: 'desc'},
-      );
+      const results = await selectedSource.search(searchQuery.trim(), {
+        limit: 30,
+        matureContent: matureContentEnabled,
+        order: {relevance: 'desc'},
+      });
       setSearchResults(results);
     } catch (error) {
       if (error instanceof Error && error.message === 'RATE_LIMITED') {
@@ -140,11 +154,17 @@ export default function ExplorerScreen() {
   const handleNavigateToInfo = useCallback(
     (item: DisplayableManga) => {
       if ('attributes' in item) {
-        navigation.navigate('Info', {item});
+        navigation.navigate('Info', {source: selectedSource as UsableExtension, item});
       }
     },
-    [navigation],
+    [navigation, selectedSource],
   );
+
+  const selectSource = async (id: string) => {
+    const ext = await loadExtension(id);
+    setSelectedSource(ext);
+    loadMangas(ext);
+  };
 
   const handleCancelSearch = () => {
     setIsSearching(false);
@@ -194,99 +214,120 @@ export default function ExplorerScreen() {
     [verticalCardAnimationsEnabled, handleNavigateToInfo, visibleIdSet],
   );
 
+  const renderSources = () => (
+    <ScrollView contentContainerStyle={styles.sourcesContainer}>
+      <Text style={styles.headerText}>Select a Source</Text>
+      {sources.map(source => (
+        <TouchableOpacity
+          key={source.id}
+          style={styles.sourceButton}
+          onPress={() => selectSource(source.id)}>
+          <Text style={styles.sourceButtonText}>{source.name}</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  );
+
   if (loading) {
-    return <PageLoading text="Loading your explorer page..." />;
+    return (
+      <PageLoading
+        text={`Loading ${selectedSource?.name}'s explorer page...`}
+      />
+    );
   }
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            colors={[theme.button]} // Android spinner colors
-            tintColor={theme.button} // iOS spinner color
-            progressBackgroundColor={theme.elevatedBackground} // Android background
-          />
-        }
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Manga Explorer</Text>
-          <View style={styles.searchContainer}>
-            {(isSearching || hasSearched) && (
-              <TouchableOpacity
-                onPress={handleCancelSearch}
-                style={styles.cancelButton}>
-                <Icon name="chevron-left" size={24} color={theme.button} />
-              </TouchableOpacity>
-            )}
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search manga..."
-              placeholderTextColor={theme.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmitEditing={handleSearch}
-              returnKeyType="search"
-            />
-          </View>
-        </View>
+      {!selectedSource ? (
+        renderSources()
+      ) : (
+        <>
+          <ScrollView
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                colors={[theme.button]} // Android spinner colors
+                tintColor={theme.button} // iOS spinner color
+                progressBackgroundColor={theme.elevatedBackground} // Android background
+              />
+            }
+            keyboardShouldPersistTaps="handled">
+            <View style={styles.header}>
+              <Text style={styles.headerText}>
+                {selectedSource.name} Explorer
+              </Text>
+              <View style={styles.searchContainer}>
+                {(isSearching || hasSearched) && (
+                  <TouchableOpacity
+                    onPress={handleCancelSearch}
+                    style={styles.cancelButton}>
+                    <Icon name="chevron-left" size={24} color={theme.button} />
+                  </TouchableOpacity>
+                )}
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search manga..."
+                  placeholderTextColor={theme.textSecondary}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  onSubmitEditing={handleSearch}
+                  returnKeyType="search"
+                />
+              </View>
+            </View>
 
-        {isSearching ? (
-          <ActivityIndicator
-            // eslint-disable-next-line react-native/no-inline-styles
-            style={{marginTop: 32}}
-            size="small"
-            color={theme.button}
-          />
-        ) : hasSearched ? (
-          searchResults.length > 0 ? (
-            <FlatList
-              ref={flatListRef}
-              data={searchResults}
-              keyExtractor={item => item.id}
-              numColumns={3}
-              // PERFORMANCE SETTINGS START
-              initialNumToRender={12} // render only x items initially
-              maxToRenderPerBatch={12} // render x more every batch
-              windowSize={6} // smaller window keeps memory usage low
-              removeClippedSubviews={true} // important on Android
-              // PERFORMANCE SETTINGS END
-              renderItem={renderSearchItem}
-              contentContainerStyle={styles.grid}
-              columnWrapperStyle={styles.row}
-              onViewableItemsChanged={onViewableItemsChanged}
-              viewabilityConfig={{viewAreaCoveragePercentThreshold: 0}}
-              scrollEnabled={false}
-            />
-          ) : (
-            <Text style={styles.noResultsText}>
-              No results for your search.
-            </Text>
-          )
-        ) : (
-          <>
-            {latestManga.length > 0 && (
-              <HorizontalListDisplayer
-                title="Latest Manga"
-                list={latestManga}
-                onCardClick={handleNavigateToInfo}
-                onCardLongPress={handleNavigateToInfo}
+            {isSearching ? (
+              <ActivityIndicator
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{marginTop: 32}}
+                size="small"
+                color={theme.button}
               />
+            ) : hasSearched ? (
+              searchResults.length > 0 ? (
+                <FlatList
+                  ref={flatListRef}
+                  data={searchResults}
+                  keyExtractor={item => item.id}
+                  numColumns={3}
+                  // PERFORMANCE SETTINGS START
+                  initialNumToRender={12} // render only x items initially
+                  maxToRenderPerBatch={12} // render x more every batch
+                  windowSize={6} // smaller window keeps memory usage low
+                  removeClippedSubviews={true} // important on Android
+                  // PERFORMANCE SETTINGS END
+                  renderItem={renderSearchItem}
+                  contentContainerStyle={styles.grid}
+                  columnWrapperStyle={styles.row}
+                  onViewableItemsChanged={onViewableItemsChanged}
+                  viewabilityConfig={{viewAreaCoveragePercentThreshold: 0}}
+                  scrollEnabled={false}
+                />
+              ) : (
+                <Text style={styles.noResultsText}>
+                  No results for your search.
+                </Text>
+              )
+            ) : (
+              <>
+                {Object.entries(explorerSections).map(([key, list]) =>
+                  list.length > 0 ? (
+                    <HorizontalListDisplayer
+                      key={key}
+                      title={key}
+                      list={list}
+                      onCardClick={handleNavigateToInfo}
+                      onCardLongPress={handleNavigateToInfo}
+                    />
+                  ) : null,
+                )}
+              </>
             )}
-            {mostFollowedManga.length > 0 && (
-              <HorizontalListDisplayer
-                title="Most Followed Manga"
-                list={mostFollowedManga}
-                onCardClick={handleNavigateToInfo}
-                onCardLongPress={handleNavigateToInfo}
-              />
-            )}
-          </>
-        )}
-      </ScrollView>
-      {rateLimited && <RateLimitWarning />}
+          </ScrollView>
+          {rateLimited && <RateLimitWarning />}
+        </>
+      )}
     </View>
   );
 }

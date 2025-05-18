@@ -10,12 +10,12 @@ import {
 } from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/AppNavigator';
-import {
-  getChapterImages,
-  getMangaById,
-  getMangaChapters,
-  isApiRateLimited,
-} from '../api/mangadex';
+// import {
+//   getChapterImages,
+//   getMangaById,
+//   getMangaChapters,
+//   isApiRateLimited,
+// } from '../api/mangadex';
 import {Chapter, Manga, MangaProgressEntry} from '../types/mangadex';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {
@@ -43,6 +43,7 @@ const FlatListCellRenderer = ({style, ...props}: any) => (
 const InfoScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<InfoScreenRouteProp>();
+  const source = route.params.source;
   const item = route.params.item;
 
   const {theme} = useTheme();
@@ -69,32 +70,17 @@ const InfoScreen = () => {
   const [rateLimited, setRateLimited] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
-  const isManga = (obj: any): obj is Manga => 'attributes' in obj;
-
   useEffect(() => {
     const resolveManga = async () => {
-      if (isApiRateLimited()) {
+      if (source.isApiRateLimited()) {
         setRateLimited(true);
         return;
       }
-      if (isManga(item)) {
-        setManga(item);
-      } else {
-        try {
-          const fullManga = await getMangaById(item.id);
-          setManga(fullManga);
-        } catch (error) {
-          if (error instanceof Error && error.message === 'RATE_LIMITED') {
-            setRateLimited(true);
-          } else {
-            console.error('Failed to fetch full manga:', error);
-          }
-        }
-      }
+      setManga(await source.informations(item.id));
     };
 
     resolveManga();
-  }, [item]);
+  }, [item, source]);
 
   useEffect(() => {
     if (!manga) {
@@ -126,7 +112,7 @@ const InfoScreen = () => {
       if (!manga || !hasMoreChapters || loading) {
         return;
       }
-      if (isApiRateLimited()) {
+      if (source.isApiRateLimited()) {
         setRateLimited(true);
         return;
       }
@@ -134,11 +120,11 @@ const InfoScreen = () => {
       setLoading(true);
 
       try {
-        const fetchedChapters = await getMangaChapters(
-          manga.id,
-          selectedLanguage,
-          currentPage,
-        );
+        const fetchedChapters = await source.chapters(manga.id, {
+          language: selectedLanguage,
+          page: currentPage,
+          limit: 100,
+        });
 
         if (Array.isArray(fetchedChapters)) {
           const newChapters = fetchedChapters.filter(
@@ -203,15 +189,7 @@ const InfoScreen = () => {
     };
 
     fetchChapters();
-  }, [
-    manga,
-    selectedLanguage,
-    currentPage,
-    hasMoreChapters,
-    loading,
-    chapters,
-    downloadedChapterIds,
-  ]);
+  }, [manga, selectedLanguage, currentPage, hasMoreChapters, loading, chapters, downloadedChapterIds, source]);
 
   const handleDownloadChapter = async (chapterId: string) => {
     if (!manga) {
@@ -219,12 +197,13 @@ const InfoScreen = () => {
     }
     setDownloadingChapters(prev => new Set(prev).add(chapterId));
     try {
-      const fetched = await getChapterImages(chapterId);
+      const fetched = await source.reader(chapterId);
       await saveChapterImagesLocally(
         manga.id,
         getTitleFromItem(manga),
         chapterId,
         fetched,
+        source.id,
       );
       setDownloadedChapterIds(prev => new Set(prev).add(chapterId));
     } catch (error) {
@@ -254,6 +233,7 @@ const InfoScreen = () => {
   ) => {
     if (chapterId && manga) {
       navigation.navigate('Reader', {
+        sourceId: source.id,
         mangaId: manga.id,
         mangaTitle: getTitleFromItem(manga),
         mangaLang: selectedLanguage,
@@ -391,6 +371,7 @@ const InfoScreen = () => {
           onPress={() => {
             if (readingProgress?.chapterId) {
               navigation.navigate('Reader', {
+                sourceId: source.id,
                 mangaId: manga.id,
                 mangaTitle: readingProgress.mangaTitle,
                 mangaLang: selectedLanguage,

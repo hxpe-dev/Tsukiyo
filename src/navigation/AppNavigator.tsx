@@ -10,12 +10,19 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import NotConnected from '../components/NotConnected';
 import {isConnected} from '../utils/variables';
+import SourcesScreen from '../screens/SourcesScreen';
+import { UsableExtension } from '../types/extensions';
 
 export type RootStackParamList = {
   Main: {screen?: keyof MainStackParamList};
   Settings: undefined;
-  Info: {item: Manga | {id: string}};
+  Info: {
+    source: UsableExtension;
+    item: Manga | {id: string};
+  };
+  Sources: undefined;
   Reader: {
+    sourceId: string;
     mangaId: string;
     mangaTitle: string;
     mangaLang: string;
@@ -42,6 +49,11 @@ const AppNavigator = () => {
         initialRouteName="Main"
         screenOptions={{headerShown: false}}>
         <Stack.Screen name="Main" component={MainLayout} />
+        <Stack.Screen
+          name="Sources"
+          component={SourcesScreen}
+          options={{presentation: 'modal'}}
+        />
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}

@@ -69,10 +69,10 @@ Feel free to submit pull requests, create issues, or share your suggestions. Wha
 ## LICENSE 📜
 Tsukiyo is licensed under the MIT License (MIT). More info can be found [here](LICENSE.md).
 
-## Upcoming version changelog (version estimation: unknown)
+## Upcoming version changelog (version estimation: v2.0.0 MAJOR UDPATE)
 This is the changelog for the upcoming app release. These changes are not included in the current latest release but have already been committed to GitHub and will be part of the next release.
 ### Added
-- 
+- Extension system (not working completely for the moment)
 
 ### Changed
 - Info screen redesign.
